@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="status_bar_height">24dp</dimen>
+    <dimen name="toolbar_height">56dp</dimen>
+    <dimen name="bottom_nav_height">56dp</dimen>
+
+    <dimen name="margin_tiny">8dp</dimen>
+    <dimen name="margin_normal">16dp</dimen>
+    <dimen name="margin_large">24dp</dimen>
+    <dimen name="margin_xlarge">32dp</dimen>
+    <dimen name="margin_xxlarge">40dp</dimen>
+
+
+    <dimen name="padding_tiny">8dp</dimen>
+    <dimen name="padding_normal">16dp</dimen>
+    <dimen name="padding_large">24dp</dimen>
+    <dimen name="padding_xlarge">32dp</dimen>
+    <dimen name="padding_xxlarge">40dp</dimen>
+    
+    <dimen name="text_space">4dp</dimen>
+    <dimen name="text_line_space">4dp</dimen>
+
+    <dimen name="divider">0.5dp</dimen>
+
+
+    <dimen name="font_min">8dp</dimen>
+
+
+</resources>
