@@ -1,5 +1,6 @@
 package com.chzu.ice.schat.activities.main;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
     private TextView editStateChangeBtn;
     private ViewGroup bottomNav;
-    private TextView mainToolbarTittle;
+    private TextView mainToolbarTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,11 +41,20 @@ public class MainActivity extends AppCompatActivity {
     private void registerComponents() {
         editStateChangeBtn = findViewById(R.id.editStateChangeBtn);
         bottomNav = findViewById(R.id.bottomNav);
-        mainToolbarTittle = findViewById(R.id.mainToolbarTittle);
+        mainToolbarTitle = findViewById(R.id.mainToolbarTittle);
     }
 
     private void registerListeners() {
         ((BottomNavigationView) bottomNav).setOnNavigationItemSelectedListener(new OnChangeFragmentListener());
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        startActivity(intent);
     }
 
     private class OnChangeFragmentListener implements BottomNavigationView.OnNavigationItemSelectedListener {
@@ -70,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
 
-        private void changeFrag(Fragment oldFrag1, Fragment oldFrag2, int i, Fragment newFrag, String tabName) {
+        private void changeFrag(Fragment oldFrag1, Fragment oldFrag2, int i, Fragment newFrag, String title) {
             FragmentTransaction transaction = fragmentManager.beginTransaction();
             transaction.hide(oldFrag2);
             transaction.hide(oldFrag1);
@@ -80,9 +90,12 @@ public class MainActivity extends AppCompatActivity {
             }
             transaction.show(newFrag);
             transaction.commit();
-            editStateChangeBtn.setVisibility(View.GONE);
-            mainToolbarTittle.setText(tabName);
+            if (i == 1) {
+                editStateChangeBtn.setVisibility(View.VISIBLE);
+            } else {
+                editStateChangeBtn.setVisibility(View.GONE);
+            }
+            mainToolbarTitle.setText(title);
         }
-
     }
 }

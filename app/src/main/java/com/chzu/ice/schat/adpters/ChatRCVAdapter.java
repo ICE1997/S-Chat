@@ -1,5 +1,6 @@
 package com.chzu.ice.schat.adpters;
 
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,10 +12,13 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.chzu.ice.schat.R;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHolder> {
     public static final int STATE_NOTING_TO_READ = -1;
@@ -23,31 +27,27 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
     public static final int STATE_HAS_SELECTED_ALL = 0;
 
     private static final String TAG = ChatRCVAdapter.class.getSimpleName();
-    private boolean hasSelectAll;
-    private boolean isEditMode = false;
-
-    private OnSelectListener onSelectListener;
-    private OnClickListener onClickListener;
-
     private final ArrayList<ChatListItemState> chatListItemStates = new ArrayList<>();
-
     private final LinkedHashSet<Integer> selectedItemBox = new LinkedHashSet<>();
     private final LinkedHashSet<Integer> unSelectedItemBox = new LinkedHashSet<>();
     private final LinkedHashSet<Integer> unReadItemBox = new LinkedHashSet<>();
-
+    private boolean hasSelectedAll;
+    private boolean isEditMode = false;
+    private OnSelectListener onSelectListener;
+    private OnClickListener onClickListener;
     private ListController listController;
 
 
     public ChatRCVAdapter() {
         selectedItemBox.clear();
         unReadItemBox.clear();
-        hasSelectAll = false;
+        hasSelectedAll = false;
         this.setHasStableIds(true);
 
         for (int i = 0; i < 20; i++) {
             unReadItemBox.add(i);
             unSelectedItemBox.add(i);
-            chatListItemStates.add(new ChatListItemState(false, false, false, i + 1, String.valueOf(i), "hi,你好", "12:00"));
+            chatListItemStates.add(new ChatListItemState(i, false, false, i, String.valueOf(i), "hi,你好", "12:00"));
         }
     }
 
@@ -64,7 +64,9 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
 
         holder.senderName.setText(chatListItemState.getMessageSender());
 
-        if (unReadItemBox.contains(holder.getAdapterPosition())) {
+        new Handler().post(() -> Glide.with(holder.itemView).load("https://img2.woyaogexing.com/2019/11/16/d1f0f2a6e50245eaa26fbe47e9130638!400x400.jpeg").into(holder.avatar));
+
+        if (!chatListItemState.isRead()) {
             Log.d(TAG, "onBindViewHolder: Item" + position + "为未读!");
             holder.newMsgNum.setText(String.valueOf(chatListItemState.getNewMessageNumber()));
             holder.newMsgNum.setVisibility(View.VISIBLE);
@@ -83,13 +85,13 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
         holder.itemView.setOnClickListener(v -> {
             if (isEditMode) {
                 if (onSelectListener != null) {
-                    onSelectListener.onSelected(v, holder.getAdapterPosition());
+                    onSelectListener.onSelected(v, position);
                 } else {
                     Log.e(TAG, "onClick: onSelectListener 为NULL");
                 }
             } else {
                 if (onClickListener != null) {
-                    onClickListener.onClick(v, holder.getAdapterPosition());
+                    onClickListener.onClick(v, position);
                 } else {
                     Log.e(TAG, "onClick: onClickListener 为NULL");
                 }
@@ -135,7 +137,7 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
     }
 
     //判断选择的项目中是否存在未读的item
-    private boolean isSelectedItemHasUnReadItem() {
+    public boolean isSelectedItemHasUnReadItem() {
         for (Integer i : selectedItemBox) {
             if (unReadItemBox.contains(i)) {
                 return true;
@@ -145,7 +147,7 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
     }
 
     //用于判断是否选择item
-    private boolean isSelectedItemBoxEmpty() {
+    public boolean isSelectedItemBoxEmpty() {
         return selectedItemBox.isEmpty();
     }
 
@@ -156,17 +158,15 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
     public void setEditMode(Boolean isEditMode) {
         this.isEditMode = isEditMode;
         if (!isEditMode) {
+            unSelectedItemBox.addAll(selectedItemBox);
             selectedItemBox.clear();
         }
         notifyDataSetChanged();
+        updateSelectState();
     }
 
     public void select(int p, boolean select) {
         //TODO：更新好友聊天列表状态数据库
-        ChatListItemState chatListItemState = chatListItemStates.get(p);
-        chatListItemState.setSelected(select);
-        chatListItemStates.set(p, chatListItemState);
-        Log.d(TAG, "select: " + p + chatListItemStates.get(p).isSelected());
         if (select) {
             selectedItemBox.add(p);
             unSelectedItemBox.remove(p);
@@ -190,21 +190,21 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
     }
 
     public boolean hasSelectedAll() {
-        return this.hasSelectAll;
+        return this.hasSelectedAll;
     }
 
     private void updateSelectState() {
         if (isEditMode) {
             if (chatListItemStates.isEmpty()) {
-                this.hasSelectAll = false;
+                this.hasSelectedAll = false;
                 listController.updateSelectState(STATE_NOTING_TO_SELECT);
             } else if (unSelectedItemBox.isEmpty()) {
                 Log.i(TAG, "updateSelectState: 已选择全部");
-                this.hasSelectAll = true;
+                this.hasSelectedAll = true;
                 listController.updateSelectState(STATE_HAS_SELECTED_ALL);
             } else {
                 Log.i(TAG, "updateSelectState: 还未选择全部 ");
-                this.hasSelectAll = false;
+                this.hasSelectedAll = false;
                 listController.updateSelectState(1);
             }
         }
@@ -236,7 +236,6 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
         chatListItemStates.set(p, chatListItemState);
         if (read) {
             Log.d(TAG, "onBindViewHolder: Item" + p + "被设置为已读!");
-            unSelectedItemBox.add(p);
             unReadItemBox.remove(p);
         } else {
             Log.d(TAG, "onBindViewHolder: Item" + p + "被设置为未读!");
@@ -251,23 +250,34 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
     public void readFromSelectedItems() {
         for (Integer i : selectedItemBox) {
             read(i, true);
+            unSelectedItemBox.add(i);
         }
         selectedItemBox.clear();
     }
 
+    /*从已选的items中删除
+     */
     public void deleteFromSelectedItems() {
-        ArrayList<ChatListItemState> tempCS = new ArrayList<>();
+        ArrayList<ChatListItemState> temp = new ArrayList<>();
         for (Integer i : selectedItemBox) {
             Log.d(TAG, "deleteFromSelectedItems: " + i);
-            tempCS.add(chatListItemStates.get(i));
             notifyItemRemoved(i);
             notifyItemRangeChanged(i, chatListItemStates.size() - i);
+            temp.add(chatListItemStates.get(i));
+            unSelectedItemBox.remove(i);
         }
-        chatListItemStates.removeAll(tempCS);
+        chatListItemStates.removeAll(temp);
+
+        unSelectedItemBox.clear();
+        unReadItemBox.clear();
         selectedItemBox.clear();
-        if (chatListItemStates.isEmpty()) {
-            unReadItemBox.clear();
+        for (int i = 0; i < chatListItemStates.size(); i++) {
+            unSelectedItemBox.add(i);
+            if (!chatListItemStates.get(i).isRead()) {
+                unReadItemBox.add(i);
+            }
         }
+
         updateSelectState();
         updateReadState();
         updateDeleteState();
@@ -324,6 +334,7 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
         private final TextView latestMsg;
         private final TextView latestReceiveTime;
         private final TextView newMsgNum;
+        private final CircleImageView avatar;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -332,6 +343,7 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
             latestMsg = itemView.findViewById(R.id.tvLatestMsg);
             latestReceiveTime = itemView.findViewById(R.id.tvReceiveTime);
             newMsgNum = itemView.findViewById(R.id.tvNewMsgNum);
+            avatar = itemView.findViewById(R.id.imAvatar);
         }
     }
 }

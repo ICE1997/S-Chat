@@ -7,7 +7,7 @@
     android:orientation="horizontal">
 
     <TextView
-        android:id="@+id/tvSelect"
+        android:id="@+id/tvSelectAll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"

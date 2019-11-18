@@ -1,16 +1,17 @@
 package com.chzu.ice.schat.adpters;
 
 class ChatListItemState {
-    private boolean isSelected;
+
     private boolean isLeftOpened;
     private boolean isRead;
+    private int position;
     private int newMessageNumber;
     private String messageSender;
     private String latestMessage;
     private String receivedTime;
 
-    public ChatListItemState(boolean isSelected, boolean isLeftOpened, boolean isRead, int newMessageNumber, String messageSender, String latestMessage, String receivedTime) {
-        this.isSelected = isSelected;
+    public ChatListItemState(int position, boolean isLeftOpened, boolean isRead, int newMessageNumber, String messageSender, String latestMessage, String receivedTime) {
+        this.position = position;
         this.isLeftOpened = isLeftOpened;
         this.isRead = isRead;
         this.newMessageNumber = newMessageNumber;
@@ -19,12 +20,12 @@ class ChatListItemState {
         this.receivedTime = receivedTime;
     }
 
-    public boolean isSelected() {
-        return isSelected;
+    public int getPosition() {
+        return position;
     }
 
-    public void setSelected(boolean selected) {
-        isSelected = selected;
+    public void setPosition(int position) {
+        this.position = position;
     }
 
     public boolean isLeftOpened() {
