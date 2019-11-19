@@ -1,4 +1,4 @@
-package com.chzu.ice.schat.activities.authentication.register;
+package com.chzu.ice.schat.activities.auth.register;
 
 import android.os.Bundle;
 import android.view.KeyEvent;

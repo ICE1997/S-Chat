@@ -1,6 +1,6 @@
 package com.chzu.ice.schat.adpters;
 
-class ChatListItemState {
+class ChatListItem {
 
     private boolean isLeftOpened;
     private boolean isRead;
@@ -10,7 +10,7 @@ class ChatListItemState {
     private String latestMessage;
     private String receivedTime;
 
-    public ChatListItemState(int position, boolean isLeftOpened, boolean isRead, int newMessageNumber, String messageSender, String latestMessage, String receivedTime) {
+    public ChatListItem(int position, boolean isLeftOpened, boolean isRead, int newMessageNumber, String messageSender, String latestMessage, String receivedTime) {
         this.position = position;
         this.isLeftOpened = isLeftOpened;
         this.isRead = isRead;

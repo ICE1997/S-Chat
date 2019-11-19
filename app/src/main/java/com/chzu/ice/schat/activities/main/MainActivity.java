@@ -36,7 +36,45 @@ public class MainActivity extends AppCompatActivity {
         registerComponents();
         registerListeners();
         ((BottomNavigationView) bottomNav).setSelectedItemId(R.id.item_chats);
+
+
     }
+
+//    void test() throws Exception {
+//        String s = "HelloWorld哈哈";
+//
+//        KeyPair keyPair = RSAUtil.generateRSAKeyPair(4096);
+//        if (keyPair != null) {
+//            PublicKey publicKey = keyPair.getPublic();
+//            PrivateKey privateKey = keyPair.getPrivate();
+//
+//            long start = System.currentTimeMillis();
+//            byte[] encrypted = RSAUtil.encryptByPublicKeyForSpilt(s.getBytes(), publicKey.getEncoded());
+//            long end = System.currentTimeMillis();
+//            Log.i(TAG, "test: " + new String(encrypted));
+//            Log.i("MainActivity", "公钥加密耗时 cost time---->" + (end - start));
+//
+//
+//            start = System.currentTimeMillis();
+//            byte[] decrypted = RSAUtil.decryptByPrivateKeyForSpilt(encrypted, privateKey.getEncoded());
+//            end = System.currentTimeMillis();
+//            Log.i(TAG, "test: " + new String(decrypted));
+//            Log.i("MainActivity", "私钥解密耗时 cost time---->" + (end - start));
+//
+//
+//            start = System.currentTimeMillis();
+//            byte[] encrypted2 = RSAUtil.encryptByPrivateKeyForSpilt(s.getBytes(), privateKey.getEncoded());
+//            end = System.currentTimeMillis();
+//            Log.i("MainActivity", "私钥加密耗时 cost time---->" + (end - start));
+//
+//
+//            start = System.currentTimeMillis();
+//            byte[] decrypted2 = RSAUtil.decryptByPublicKeyForSpilt(encrypted2, publicKey.getEncoded());
+//            end = System.currentTimeMillis();
+//            Log.i(TAG, "test: " + new String(decrypted2));
+//            Log.i("MainActivity", "公钥解密耗时 cost time---->" + (end - start));
+//        }
+//   }
 
     private void registerComponents() {
         editStateChangeBtn = findViewById(R.id.editStateChangeBtn);

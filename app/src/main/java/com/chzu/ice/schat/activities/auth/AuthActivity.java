@@ -1,4 +1,4 @@
-package com.chzu.ice.schat.activities.authentication;
+package com.chzu.ice.schat.activities.auth;
 
 import android.os.Bundle;
 
@@ -7,7 +7,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.chzu.ice.schat.R;
-import com.chzu.ice.schat.activities.authentication.login.LoginFragment;
+import com.chzu.ice.schat.activities.auth.login.LoginFragment;
 import com.chzu.ice.schat.utils.UIManager;
 
 public class AuthActivity extends AppCompatActivity {

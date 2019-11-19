@@ -27,7 +27,7 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
     public static final int STATE_HAS_SELECTED_ALL = 0;
 
     private static final String TAG = ChatRCVAdapter.class.getSimpleName();
-    private final ArrayList<ChatListItemState> chatListItemStates = new ArrayList<>();
+    private final ArrayList<ChatListItem> chatListItemStates = new ArrayList<>();
     private final LinkedHashSet<Integer> selectedItemBox = new LinkedHashSet<>();
     private final LinkedHashSet<Integer> unSelectedItemBox = new LinkedHashSet<>();
     private final LinkedHashSet<Integer> unReadItemBox = new LinkedHashSet<>();
@@ -47,7 +47,7 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
         for (int i = 0; i < 20; i++) {
             unReadItemBox.add(i);
             unSelectedItemBox.add(i);
-            chatListItemStates.add(new ChatListItemState(i, false, false, i, String.valueOf(i), "hi,你好", "12:00"));
+            chatListItemStates.add(new ChatListItem(i, false, false, i, String.valueOf(i), "hi,你好", "12:00"));
         }
     }
 
@@ -60,7 +60,7 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder holder, final int position) {
-        ChatListItemState chatListItemState = chatListItemStates.get(holder.getAdapterPosition());
+        ChatListItem chatListItemState = chatListItemStates.get(holder.getAdapterPosition());
 
         holder.senderName.setText(chatListItemState.getMessageSender());
 
@@ -182,7 +182,7 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
     }
 
     public void selectAll(boolean select) {
-        for (ChatListItemState c :
+        for (ChatListItem c :
                 chatListItemStates) {
             int p = chatListItemStates.indexOf(c);
             select(p, select);
@@ -231,7 +231,7 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
     }
 
     public void read(int p, boolean read) {
-        ChatListItemState chatListItemState = chatListItemStates.get(p);
+        ChatListItem chatListItemState = chatListItemStates.get(p);
         chatListItemState.setRead(read);
         chatListItemStates.set(p, chatListItemState);
         if (read) {
@@ -258,7 +258,7 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
     /*从已选的items中删除
      */
     public void deleteFromSelectedItems() {
-        ArrayList<ChatListItemState> temp = new ArrayList<>();
+        ArrayList<ChatListItem> temp = new ArrayList<>();
         for (Integer i : selectedItemBox) {
             Log.d(TAG, "deleteFromSelectedItems: " + i);
             notifyItemRemoved(i);
@@ -306,6 +306,10 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
         this.onClickListener = onClickListener;
     }
 
+
+    /**
+     * 聊天列表的选择全都，读，删的操作
+     */
     public void setListController(ListController listController) {
         this.listController = listController;
     }
