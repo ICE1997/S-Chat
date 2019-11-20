@@ -13,10 +13,12 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.chzu.ice.schat.App;
 import com.chzu.ice.schat.R;
 import com.chzu.ice.schat.activities.main.chatsList.ChatsListFragment;
 import com.chzu.ice.schat.activities.main.friendsList.FriendsListFragment;
 import com.chzu.ice.schat.activities.main.settingsList.SettingsListFragment;
+import com.chzu.ice.schat.utils.MQTTController;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
@@ -38,9 +40,14 @@ public class MainActivity extends AppCompatActivity {
         ((BottomNavigationView) bottomNav).setSelectedItemId(R.id.item_chats);
 
 
+        ArrayList<String> topics = new ArrayList<>();
+        topics.add(App.getSignedInUserTopic());
+        MQTTController.registerConnectSucceedBRReceiver(topics);
+        MQTTController.sendConnectBroadcast();
     }
 
-//    void test() throws Exception {
+
+    //    void test() throws Exception {
 //        String s = "HelloWorld哈哈";
 //
 //        KeyPair keyPair = RSAUtil.generateRSAKeyPair(4096);
@@ -96,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private class OnChangeFragmentListener implements BottomNavigationView.OnNavigationItemSelectedListener {
-        private final ArrayList<Integer> added = new ArrayList<>();
         private final FragmentManager fragmentManager = getSupportFragmentManager();
         private final Fragment chatFrag = ChatsListFragment.newInstance();
         private final Fragment friendFrag = FriendsListFragment.newInstance();
@@ -106,27 +112,21 @@ public class MainActivity extends AppCompatActivity {
         public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
             switch (menuItem.getItemId()) {
                 case R.id.item_chats:
-                    changeFrag(settingFrag, friendFrag, 1, chatFrag, "Chats");
+                    changeFrag(1, chatFrag, "Chats");
                     return true;
                 case R.id.item_friends:
-                    changeFrag(settingFrag, chatFrag, 2, friendFrag, "Friends");
+                    changeFrag(2, friendFrag, "Friends");
                     return true;
                 case R.id.item_settings:
-                    changeFrag(friendFrag, chatFrag, 3, settingFrag, "Settings");
+                    changeFrag(3, settingFrag, "Settings");
                     return true;
             }
             return false;
         }
 
-        private void changeFrag(Fragment oldFrag1, Fragment oldFrag2, int i, Fragment newFrag, String title) {
+        private void changeFrag(int i, Fragment newFrag, String title) {
             FragmentTransaction transaction = fragmentManager.beginTransaction();
-            transaction.hide(oldFrag2);
-            transaction.hide(oldFrag1);
-            if (!added.contains(i)) {
-                transaction.add(R.id.mainContent, newFrag);
-                added.add(i);
-            }
-            transaction.show(newFrag);
+            transaction.replace(R.id.mainContent, newFrag);
             transaction.commit();
             if (i == 1) {
                 editStateChangeBtn.setVisibility(View.VISIBLE);

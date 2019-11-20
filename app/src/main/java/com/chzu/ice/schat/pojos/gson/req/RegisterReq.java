@@ -4,6 +4,11 @@ public class RegisterReq {
     private String username;
     private String password;
 
+    public RegisterReq(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
     public String getUsername() {
         return username;
     }

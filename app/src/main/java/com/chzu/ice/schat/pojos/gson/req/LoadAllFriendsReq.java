@@ -2,7 +2,10 @@ package com.chzu.ice.schat.pojos.gson.req;
 
 public class LoadAllFriendsReq {
     private String username;
-    private String token;
+
+    public LoadAllFriendsReq(String username) {
+        this.username = username;
+    }
 
     public String getUsername() {
         return username;
@@ -10,13 +13,5 @@ public class LoadAllFriendsReq {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
     }
 }

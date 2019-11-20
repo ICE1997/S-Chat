@@ -12,17 +12,21 @@ import com.bumptech.glide.Glide;
 import com.chzu.ice.schat.R;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class FriendsRCVAdapter extends RecyclerView.Adapter<FriendsRCVAdapter.ViewHolder> {
+public class FriendListRCVAdapter extends RecyclerView.Adapter<FriendListRCVAdapter.ViewHolder> {
     private ArrayList<FriendListItem> friendListItems = new ArrayList<>();
+    private OnClickListener onClickListener;
 
-    public FriendsRCVAdapter() {
+    public FriendListRCVAdapter(List<FriendListItem> friendListItems) {
+        this.friendListItems = (ArrayList<FriendListItem>) friendListItems;
         setHasStableIds(true);
-        for (int i = 0; i < 100; i++) {
-            friendListItems.add(new FriendListItem("https://img2.woyaogexing.com/2019/11/16/d1f0f2a6e50245eaa26fbe47e9130638!400x400.jpeg", String.valueOf(i)));
-        }
+    }
+
+    public FriendListRCVAdapter() {
+        setHasStableIds(true);
     }
 
     @NonNull
@@ -34,7 +38,11 @@ public class FriendsRCVAdapter extends RecyclerView.Adapter<FriendsRCVAdapter.Vi
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Glide.with(holder.itemView).load(friendListItems.get(position).getAvatarAddr()).into(holder.imAvatar);
+        holder.itemView.setOnClickListener((v -> onClickListener.onClick(friendListItems.get(position).getUsername())));
+
+        if (friendListItems.get(position).getAvatarAddr() == null || "".equals(friendListItems.get(position).getAvatarAddr())) {
+            Glide.with(holder.itemView).load("https://img2.woyaogexing.com/2019/11/16/d1f0f2a6e50245eaa26fbe47e9130638!400x400.jpeg").into(holder.imAvatar);
+        }
         holder.tvName.setText(friendListItems.get(position).getUsername());
     }
 
@@ -46,6 +54,19 @@ public class FriendsRCVAdapter extends RecyclerView.Adapter<FriendsRCVAdapter.Vi
     @Override
     public int getItemCount() {
         return friendListItems.size();
+    }
+
+    public void setDataSet(ArrayList<FriendListItem> friendListItems) {
+        this.friendListItems = friendListItems;
+        notifyDataSetChanged();
+    }
+
+    public void setOnClickListener(OnClickListener onClickListener) {
+        this.onClickListener = onClickListener;
+    }
+
+    public interface OnClickListener {
+        void onClick(String name);
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {

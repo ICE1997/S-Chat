@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "2:6825926262547960335",
-      "lastPropertyId": "9:5582254304775064002",
+      "lastPropertyId": "11:7229157337523222587",
       "name": "AccountE",
       "properties": [
         {
@@ -27,12 +27,88 @@
         {
           "id": "9:5582254304775064002",
           "name": "publicKey"
+        },
+        {
+          "id": "10:5726663612587214792",
+          "name": "accessToken"
+        },
+        {
+          "id": "11:7229157337523222587",
+          "name": "refreshToken"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "3:250309309638329352",
+      "lastPropertyId": "6:6401419420343715194",
+      "name": "FriendE",
+      "properties": [
+        {
+          "id": "1:2578288534520132374",
+          "name": "id"
+        },
+        {
+          "id": "2:6969164243976163568",
+          "name": "username"
+        },
+        {
+          "id": "3:954124844291938392",
+          "name": "friendName"
+        },
+        {
+          "id": "4:8398011060746886437",
+          "name": "friendTopic"
+        },
+        {
+          "id": "5:3273727564308269414",
+          "name": "friendAvatarSrc"
+        },
+        {
+          "id": "6:6401419420343715194",
+          "name": "publicKey"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "4:2456678755026845372",
+      "lastPropertyId": "1:6940913999054698490",
+      "name": "ChatListE",
+      "properties": [
+        {
+          "id": "1:6940913999054698490",
+          "name": "id"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "5:7896737661136057088",
+      "lastPropertyId": "5:4491111660917210260",
+      "name": "MessageE",
+      "properties": [
+        {
+          "id": "1:3997806741150402634",
+          "name": "id"
+        },
+        {
+          "id": "2:3901649938396211707",
+          "name": "sender"
+        },
+        {
+          "id": "4:1098679397489023494",
+          "name": "receiver"
+        },
+        {
+          "id": "5:4491111660917210260",
+          "name": "content"
         }
       ],
       "relations": []
     }
   ],
-  "lastEntityId": "2:6825926262547960335",
+  "lastEntityId": "5:7896737661136057088",
   "lastIndexId": "0:0",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
@@ -53,7 +129,8 @@
     2473388654652852077,
     7197491929650842057,
     6772294229704848859,
-    1962369230218262907
+    1962369230218262907,
+    1254943866225942052
   ],
   "retiredRelationUids": [],
   "version": 1

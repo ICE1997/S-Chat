@@ -19,7 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.chzu.ice.schat.R;
 import com.chzu.ice.schat.activities.chat.ChatActivity;
-import com.chzu.ice.schat.adpters.ChatRCVAdapter;
+import com.chzu.ice.schat.adpters.ChatListRCVAdapter;
 import com.chzu.ice.schat.views.custom.CustomLinearLayoutManager;
 
 public class ChatsListFragment extends Fragment implements ChatsListContract.View {
@@ -32,7 +32,7 @@ public class ChatsListFragment extends Fragment implements ChatsListContract.Vie
     private View bottomNavNormal;
     private View bottomNavEdit;
     private TextView editStateChangeBtn;
-    private ChatRCVAdapter chatRCVAdapter;
+    private ChatListRCVAdapter chatRCVAdapter;
     private boolean isEditMode = false;
 
 
@@ -135,7 +135,8 @@ public class ChatsListFragment extends Fragment implements ChatsListContract.Vie
         llm.setInitialPrefetchItemCount(5);
         chatListRv.setLayoutManager(llm);
         chatListRv.setHasFixedSize(true);
-        chatRCVAdapter = new ChatRCVAdapter();
+        chatListRv.getItemAnimator().setChangeDuration(0);
+        chatRCVAdapter = new ChatListRCVAdapter();
 
         chatRCVAdapter.setListController(new ListController());
 
@@ -199,14 +200,14 @@ public class ChatsListFragment extends Fragment implements ChatsListContract.Vie
         }
     }
 
-    public class ListController implements ChatRCVAdapter.ListController {
+    public class ListController implements ChatListRCVAdapter.ListController {
         @Override
         public void updateSelectState(int state) {
-            if (state == ChatRCVAdapter.STATE_HAS_SELECTED_ALL) {
+            if (state == ChatListRCVAdapter.STATE_HAS_SELECTED_ALL) {
                 Log.i(TAG, "updateSelectState: SELECTED ALL");
                 selectTV.setEnabled(true);
                 selectTV.setText("Selected All");
-            } else if (state == ChatRCVAdapter.STATE_NOTING_TO_SELECT) {
+            } else if (state == ChatListRCVAdapter.STATE_NOTING_TO_SELECT) {
                 Log.i(TAG, "updateSelectState: Noting TO BE SELECTED");
                 selectTV.setEnabled(false);
                 selectTV.setText("Select All");
@@ -218,7 +219,7 @@ public class ChatsListFragment extends Fragment implements ChatsListContract.Vie
 
         @Override
         public void updateReadState(int state) {
-            if (state == ChatRCVAdapter.STATE_NOTING_TO_READ) {
+            if (state == ChatListRCVAdapter.STATE_NOTING_TO_READ) {
                 readTV.setEnabled(false);
             } else {
                 readTV.setEnabled(true);
@@ -227,7 +228,7 @@ public class ChatsListFragment extends Fragment implements ChatsListContract.Vie
 
         @Override
         public void updateDeleteState(int state) {
-            if (state == ChatRCVAdapter.STATE_NOTING_TO_DELETE) {
+            if (state == ChatListRCVAdapter.STATE_NOTING_TO_DELETE) {
                 deleteTV.setEnabled(false);
             } else {
                 deleteTV.setEnabled(true);

@@ -6,7 +6,7 @@ import io.objectbox.annotation.Id;
 @Entity
 public class AccountE {
     @Id
-    long id;
+    public long id;
     private String username;
     private String topic;
     private String privateKey;

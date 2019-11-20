@@ -5,16 +5,16 @@ class ChatListItem {
     private boolean isLeftOpened;
     private boolean isRead;
     private int position;
-    private int newMessageNumber;
+    private int unReadMessageNumber;
     private String messageSender;
     private String latestMessage;
     private String receivedTime;
 
-    public ChatListItem(int position, boolean isLeftOpened, boolean isRead, int newMessageNumber, String messageSender, String latestMessage, String receivedTime) {
+    public ChatListItem(int position, boolean isLeftOpened, boolean isRead, int unReadMessageNumber, String messageSender, String latestMessage, String receivedTime) {
         this.position = position;
         this.isLeftOpened = isLeftOpened;
         this.isRead = isRead;
-        this.newMessageNumber = newMessageNumber;
+        this.unReadMessageNumber = unReadMessageNumber;
         this.messageSender = messageSender;
         this.latestMessage = latestMessage;
         this.receivedTime = receivedTime;
@@ -44,12 +44,12 @@ class ChatListItem {
         this.isRead = hasNewMessage;
     }
 
-    public int getNewMessageNumber() {
-        return newMessageNumber;
+    public int getUnReadMessageNumber() {
+        return unReadMessageNumber;
     }
 
-    public void setNewMessageNumber(int newMessageNumber) {
-        this.newMessageNumber = newMessageNumber;
+    public void setUnReadMessageNumber(int unReadMessageNumber) {
+        this.unReadMessageNumber = unReadMessageNumber;
     }
 
     public String getMessageSender() {

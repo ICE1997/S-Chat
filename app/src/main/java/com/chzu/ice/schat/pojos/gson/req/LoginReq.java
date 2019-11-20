@@ -5,19 +5,13 @@ public class LoginReq {
     private String password;
     private String publicKey;
 
-    public LoginReq(String username, String password,String publicKey) {
-        this.publicKey = publicKey;
+    public LoginReq(String username, String password, String publicKey) {
         this.username = username;
         this.password = password;
-    }
-
-    public String getPublicKey() {
-        return publicKey;
-    }
-
-    public void setPublicKey(String publicKey) {
         this.publicKey = publicKey;
     }
+
+
 
     public String getUsername() {
         return username;
@@ -33,5 +27,13 @@ public class LoginReq {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
     }
 }
