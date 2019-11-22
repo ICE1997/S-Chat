@@ -73,12 +73,36 @@
     },
     {
       "id": "4:2456678755026845372",
-      "lastPropertyId": "1:6940913999054698490",
+      "lastPropertyId": "7:7904808069706144399",
       "name": "ChatListE",
       "properties": [
         {
           "id": "1:6940913999054698490",
           "name": "id"
+        },
+        {
+          "id": "2:7434825355121968158",
+          "name": "username"
+        },
+        {
+          "id": "3:2525141323446702726",
+          "name": "friendName"
+        },
+        {
+          "id": "4:8923883997569069640",
+          "name": "unReadMessageNum"
+        },
+        {
+          "id": "5:1933486270689279716",
+          "name": "latestMsg"
+        },
+        {
+          "id": "6:3529622206033799653",
+          "name": "latestChatTime"
+        },
+        {
+          "id": "7:7904808069706144399",
+          "name": "avatarSrc"
         }
       ],
       "relations": []

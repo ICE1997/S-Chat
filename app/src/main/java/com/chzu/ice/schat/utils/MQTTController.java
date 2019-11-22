@@ -10,6 +10,11 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.chzu.ice.schat.App;
 import com.chzu.ice.schat.configs.MQTTConfig;
+import com.chzu.ice.schat.data.LocalRepository;
+import com.chzu.ice.schat.pojos.database.ChatListE;
+import com.chzu.ice.schat.pojos.database.MessageE;
+import com.chzu.ice.schat.pojos.mqtt.Message;
+import com.google.gson.Gson;
 
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -23,6 +28,7 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -55,10 +61,11 @@ public class MQTTController {
         LocalBroadcastManager.getInstance(App.getContext()).sendBroadcast(intent);
     }
 
-    private static void sendSendMessageBroadCast(String content, String topic) {
+    public static void sendSendMessageBroadCast(String content, String topic) {
         Intent intent = new Intent(MQTTConfig.SIGNAL_SEND_MESSAGE);
         intent.putExtra(MQTTConfig.EXTRA_SEND_MESSAGE_MESSAGE, content);
         intent.putExtra(MQTTConfig.EXTRA_SEND_MESSAGE_TOPIC, topic);
+
         LocalBroadcastManager.getInstance(App.getContext()).sendBroadcast(intent);
     }
 
@@ -112,10 +119,18 @@ public class MQTTController {
      * 发送收到信息的广播
      * 应用内通信，用于收到新的信息后，发送广播来通知应用收到新的信息
      */
-    private void sendNewMessageBroadcast(String topic, String msg) {
+    private void sendNewMessageByGsonBroadcast(String msgGson) {
         Intent intent = new Intent(MQTTConfig.SIGNAL_RECEIVE_MESSAGE);
-        intent.putExtra(MQTTConfig.EXTRA_RECEIVE_MESSAGE_TOPIC, topic);
-        intent.putExtra(MQTTConfig.EXTRA_RECEIVE_MESSAGE_MESSAGE, msg);
+        intent.putExtra(MQTTConfig.EXTRA_RECEIVE_MESSAGE_MESSAGE, msgGson);
+        LocalBroadcastManager.getInstance(App.getContext()).sendBroadcast(intent);
+    }
+
+    /**
+     * 发送信息成功的广播
+     * 应用内通信，用于发送信息发送成功的广播（但是不能说明对方已经收到信息）
+     */
+    private void sendSendMessageSucceedBroadcast() {
+        Intent intent = new Intent(MQTTConfig.SIGNAL_SEND_MESSAGE_SUCCEED);
         LocalBroadcastManager.getInstance(App.getContext()).sendBroadcast(intent);
     }
 
@@ -226,12 +241,32 @@ public class MQTTController {
         registerSendMessageSignalReceiver();
     }
 
+    private void processMessage(Message message) {
+        MessageE messageE = new MessageE();
+        messageE.setContent(message.getMsg());
+        messageE.setSender(message.getSender());
+        messageE.setReceiver(message.getReceiver());
+        messageE.setTimestamp(message.getSendTime());
+        LocalRepository.localAddMessage(messageE);
+
+        ChatListE chatListE = new ChatListE();
+        chatListE.setUnReadMessageNum(1);
+        chatListE.setLatestMsg(message.getMsg());
+        chatListE.setUsername(App.getSignedInUsername());
+        chatListE.setFriendName(messageE.getSender());
+        chatListE.setLatestChatTime(messageE.getTimestamp());
+        LocalRepository.localAddOrUpdateChatList(chatListE);
+
+        Gson gson = new Gson();
+        sendNewMessageByGsonBroadcast(gson.toJson(message));
+    }
+
     /**
      * 连接客户端的回调，包括连接成功和连接失败
      */
     private class ConnectListener implements IMqttActionListener {
-        private Timer timer = new Timer();
-        private TimerTask task = new TimerTask() {
+        private final Timer timer = new Timer();
+        private final TimerTask task = new TimerTask() {
             @Override
             public void run() {
                 Log.d(TAG, "onFailure: 连接失败，5s后重试");
@@ -290,8 +325,8 @@ public class MQTTController {
      * MQTT全程回调/监听器,用于实现MQTT的一些回调，比如当失联时，新信息到达时，或者信息发送成功时。
      */
     private class MMQTTCallback implements MqttCallback {
-        Timer timer = new Timer();
-        TimerTask task = new TimerTask() {
+        private final Timer timer = new Timer();
+        private final TimerTask task = new TimerTask() {
             @Override
             public void run() {
                 Log.d(TAG, "connectionLost: 连接丢失,重新连线");
@@ -325,6 +360,16 @@ public class MQTTController {
             Log.d(TAG, "messageArrived: 新消息");
             Log.d(TAG, "messageArrived: topic: to " + topic);
             Log.d(TAG, "messageArrived: msg:" + message.toString());
+            new Thread(() -> {
+                Message msg = MessageProcessor.decryptMessage(message.toString());
+                if (msg != null) {
+                    processMessage(msg);
+                    Log.d(TAG, "run: 信息:" + msg.getMsg());
+                    Log.d(TAG, "run: 发送时间:" + new Date(msg.getSendTime()));
+                } else {
+                    Log.e(TAG, "run: 解密失败");
+                }
+            }).start();
         }
 
         @Override

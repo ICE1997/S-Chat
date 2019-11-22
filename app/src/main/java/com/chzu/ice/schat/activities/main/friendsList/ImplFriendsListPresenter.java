@@ -5,8 +5,8 @@ import android.util.Log;
 import com.chzu.ice.schat.App;
 import com.chzu.ice.schat.activities.auth.register.ImplRegisterPresenter;
 import com.chzu.ice.schat.adpters.FriendListItem;
-import com.chzu.ice.schat.data.LocalDataBase;
-import com.chzu.ice.schat.data.RemoteDatabase;
+import com.chzu.ice.schat.data.LocalRepository;
+import com.chzu.ice.schat.data.RemoteRepository;
 import com.chzu.ice.schat.pojos.database.AccountE;
 import com.chzu.ice.schat.pojos.database.FriendE;
 import com.chzu.ice.schat.pojos.gson.resp.BaseResponse;
@@ -29,9 +29,9 @@ public class ImplFriendsListPresenter implements FriendsListContract.Presenter {
         view.afterLoad();
         new Thread(() -> {
             ArrayList<FriendListItem> friendListItems = new ArrayList<>();
-            AccountE accountE = LocalDataBase.localGetAccountByUsername(username);
+            AccountE accountE = LocalRepository.localGetAccountByUsername(username);
             if (accountE != null) {
-                BaseResponse<List<LoadAllFriendRelationsData>> relations = RemoteDatabase.remoteLoadAllFriendsByToken(App.getSignedInUserAccessToken());
+                BaseResponse<List<LoadAllFriendRelationsData>> relations = RemoteRepository.remoteLoadAllFriendsByToken(App.getSignedInUserAccessToken());
                 if (relations != null) {
                     switch (relations.code) {
                         case "10401":
@@ -43,7 +43,7 @@ public class ImplFriendsListPresenter implements FriendsListContract.Presenter {
                                 friendE.setFriendTopic(d.friendTopic);
                                 friendE.setFriendName(d.friendName);
                                 friendE.setUsername(d.userName);
-                                LocalDataBase.localAddFriend(friendE);
+                                LocalRepository.localAddFriend(friendE);
                                 friendListItems.add(new FriendListItem("", d.friendName));
                             }
                             break;
@@ -51,7 +51,7 @@ public class ImplFriendsListPresenter implements FriendsListContract.Presenter {
                             break;
                         case "401":
                             Log.i(TAG, "loadAllFriendsByUsername: AccessToken失效，请获取新的token" + App.getSignedInUserAccessToken());
-                            BaseResponse baseResponse = RemoteDatabase.remoteGetAccessTokenByRefreshToken(App.getSignedInUserRefreshToken());
+                            BaseResponse baseResponse = RemoteRepository.remoteGetAccessTokenByRefreshToken(App.getSignedInUserRefreshToken());
                             if (baseResponse != null) {
                                 if ("10501".equals(baseResponse.code)) {
                                     accountE.setAccessToken((String) baseResponse.data);

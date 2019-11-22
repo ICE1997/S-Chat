@@ -2,6 +2,8 @@ package com.chzu.ice.schat.activities.main;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Base64;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,8 +21,12 @@ import com.chzu.ice.schat.activities.main.chatsList.ChatsListFragment;
 import com.chzu.ice.schat.activities.main.friendsList.FriendsListFragment;
 import com.chzu.ice.schat.activities.main.settingsList.SettingsListFragment;
 import com.chzu.ice.schat.utils.MQTTController;
+import com.chzu.ice.schat.utils.RSAUtil;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.ArrayList;
 
 
@@ -44,44 +50,71 @@ public class MainActivity extends AppCompatActivity {
         topics.add(App.getSignedInUserTopic());
         MQTTController.registerConnectSucceedBRReceiver(topics);
         MQTTController.sendConnectBroadcast();
+
+
+//        new Thread(() -> {
+//            try {
+//                test();
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }).start();
     }
 
 
-    //    void test() throws Exception {
-//        String s = "HelloWorld哈哈";
-//
-//        KeyPair keyPair = RSAUtil.generateRSAKeyPair(4096);
-//        if (keyPair != null) {
-//            PublicKey publicKey = keyPair.getPublic();
-//            PrivateKey privateKey = keyPair.getPrivate();
-//
-//            long start = System.currentTimeMillis();
-//            byte[] encrypted = RSAUtil.encryptByPublicKeyForSpilt(s.getBytes(), publicKey.getEncoded());
-//            long end = System.currentTimeMillis();
-//            Log.i(TAG, "test: " + new String(encrypted));
-//            Log.i("MainActivity", "公钥加密耗时 cost time---->" + (end - start));
-//
-//
-//            start = System.currentTimeMillis();
-//            byte[] decrypted = RSAUtil.decryptByPrivateKeyForSpilt(encrypted, privateKey.getEncoded());
-//            end = System.currentTimeMillis();
-//            Log.i(TAG, "test: " + new String(decrypted));
-//            Log.i("MainActivity", "私钥解密耗时 cost time---->" + (end - start));
-//
-//
-//            start = System.currentTimeMillis();
-//            byte[] encrypted2 = RSAUtil.encryptByPrivateKeyForSpilt(s.getBytes(), privateKey.getEncoded());
-//            end = System.currentTimeMillis();
-//            Log.i("MainActivity", "私钥加密耗时 cost time---->" + (end - start));
-//
-//
-//            start = System.currentTimeMillis();
-//            byte[] decrypted2 = RSAUtil.decryptByPublicKeyForSpilt(encrypted2, publicKey.getEncoded());
-//            end = System.currentTimeMillis();
-//            Log.i(TAG, "test: " + new String(decrypted2));
-//            Log.i("MainActivity", "公钥解密耗时 cost time---->" + (end - start));
-//        }
-//   }
+    void test() throws Exception {
+        StringBuilder s = new StringBuilder("HelloWorld哈哈");
+
+        for (int i = 0; i < 50000; i++) {
+            s.append("哈哈");
+        }
+
+        KeyPair keyPair = RSAUtil.generateKeyPair(2048);
+        if (keyPair != null) {
+            PublicKey publicKey = keyPair.getPublic();
+            PrivateKey privateKey = keyPair.getPrivate();
+
+//            String ss = Base64.encodeToString("Hfaadad呵呵".getBytes(StandardCharsets.ISO_8859_1), Base64.NO_PADDING);
+//            String sss = new String(Base64.decode(ss, Base64.NO_PADDING), StandardCharsets.ISO_8859_1);
+//            Log.d(TAG, "testHahfha: " + sss);
+
+
+            String pb = Base64.encodeToString(publicKey.getEncoded(), Base64.NO_PADDING);
+            String pr = Base64.encodeToString(privateKey.getEncoded(), Base64.NO_PADDING);
+
+            Log.d(TAG, "test: pb====\n" + pb);
+            Log.d(TAG, "test: pr====\n" + pr);
+
+            byte pubk[] = Base64.decode(pb, Base64.NO_PADDING);
+            byte priv[] = Base64.decode(pr, Base64.NO_PADDING);
+
+            long start = System.currentTimeMillis();
+            byte[] encrypted = RSAUtil.encryptWithPublicKeyBlock(s.toString().getBytes(), pubk);
+            long end = System.currentTimeMillis();
+            Log.i(TAG, "test: " + new String(encrypted));
+            Log.i("MainActivity", "公钥加密耗时 cost time---->" + (end - start));
+
+
+            start = System.currentTimeMillis();
+            byte[] decrypted = RSAUtil.decryptWithPrivateKeyBlock(encrypted, priv);
+            end = System.currentTimeMillis();
+            Log.i(TAG, "test: " + new String(decrypted));
+            Log.i("MainActivity", "私钥解密耗时 cost time---->" + (end - start));
+
+
+            start = System.currentTimeMillis();
+            byte[] encrypted2 = RSAUtil.encryptWithPrivateKeyBlock(s.toString().getBytes(), privateKey.getEncoded());
+            end = System.currentTimeMillis();
+            Log.i("MainActivity", "私钥加密耗时 cost time---->" + (end - start));
+
+
+            start = System.currentTimeMillis();
+            byte[] decrypted2 = RSAUtil.decryptWithPublicKeyBlock(encrypted2, publicKey.getEncoded());
+            end = System.currentTimeMillis();
+            Log.i(TAG, "test: " + new String(decrypted2));
+            Log.i("MainActivity", "公钥解密耗时 cost time---->" + (end - start));
+        }
+    }
 
     private void registerComponents() {
         editStateChangeBtn = findViewById(R.id.editStateChangeBtn);

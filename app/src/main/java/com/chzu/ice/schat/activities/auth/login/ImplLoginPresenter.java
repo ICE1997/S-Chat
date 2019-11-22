@@ -3,8 +3,8 @@ package com.chzu.ice.schat.activities.auth.login;
 import android.util.Log;
 
 import com.chzu.ice.schat.App;
-import com.chzu.ice.schat.data.LocalDataBase;
-import com.chzu.ice.schat.data.RemoteDatabase;
+import com.chzu.ice.schat.data.LocalRepository;
+import com.chzu.ice.schat.data.RemoteRepository;
 import com.chzu.ice.schat.data.SPDao;
 import com.chzu.ice.schat.pojos.database.AccountE;
 import com.chzu.ice.schat.pojos.gson.resp.BaseResponse;
@@ -28,13 +28,13 @@ public class ImplLoginPresenter implements LoginContract.Presenter {
     public void login(final String username, final String password) {
         view.afterLogin();
         new Thread(() -> {
-            KeyPair keyPair = RSAUtil.generateRSAKeyPair(4096);
+            KeyPair keyPair = RSAUtil.generateKeyPair(RSAUtil.KEYSIZE);
             PublicKey publicKey;
             PrivateKey privateKey;
             if (keyPair != null) {
                 publicKey = keyPair.getPublic();
                 privateKey = keyPair.getPrivate();
-                BaseResponse<LoginData> respJ = RemoteDatabase.remoteLogin(username, password, new String(publicKey.getEncoded()));
+                BaseResponse<LoginData> respJ = RemoteRepository.remoteLogin(username, password, RSAUtil.byte2Base64(publicKey.getEncoded()));
                 if (respJ != null) {
                     view.endLogin();
                     switch (respJ.code) {
@@ -47,9 +47,9 @@ public class ImplLoginPresenter implements LoginContract.Presenter {
                             accountE.setRefreshToken(data.refreshToken);
                             accountE.setAccessToken(data.accessToken);
                             accountE.setTopic(data.topic);
-                            accountE.setPublicKey(new String(publicKey.getEncoded()));
-                            accountE.setPrivateKey(new String(privateKey.getEncoded()));
-                            LocalDataBase.localAddAccount(accountE);
+                            accountE.setPublicKey(RSAUtil.byte2Base64(publicKey.getEncoded()));
+                            accountE.setPrivateKey(RSAUtil.byte2Base64(privateKey.getEncoded()));
+                            LocalRepository.localAddAccount(accountE);
                             SPDao.setSignedInUser(accountE);
                             break;
                         case "10202":

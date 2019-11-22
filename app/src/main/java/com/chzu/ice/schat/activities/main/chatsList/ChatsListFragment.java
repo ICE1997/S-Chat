@@ -200,7 +200,7 @@ public class ChatsListFragment extends Fragment implements ChatsListContract.Vie
         }
     }
 
-    public class ListController implements ChatListRCVAdapter.ListController {
+    private final class ListController implements ChatListRCVAdapter.ListController {
         @Override
         public void updateSelectState(int state) {
             if (state == ChatListRCVAdapter.STATE_HAS_SELECTED_ALL) {

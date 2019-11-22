@@ -2,7 +2,7 @@ package com.chzu.ice.schat.activities.auth.register;
 
 import android.util.Log;
 
-import com.chzu.ice.schat.data.RemoteDatabase;
+import com.chzu.ice.schat.data.RemoteRepository;
 import com.chzu.ice.schat.pojos.gson.resp.BaseResponse;
 
 public class ImplRegisterPresenter implements RegisterContract.Presenter {
@@ -19,7 +19,7 @@ public class ImplRegisterPresenter implements RegisterContract.Presenter {
     public void register(String username, String password) {
         view.afterRegister();
         new Thread(() -> {
-            BaseResponse respJ = RemoteDatabase.remoteRegister(username, password);
+            BaseResponse respJ = RemoteRepository.remoteRegister(username, password);
             if (respJ != null) {
                 view.endRegister();
                 switch (respJ.code) {

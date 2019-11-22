@@ -13,6 +13,8 @@ public class FriendE {
     private String friendAvatarSrc;
     private String publicKey;
 
+
+
     public String getUsername() {
         return username;
     }

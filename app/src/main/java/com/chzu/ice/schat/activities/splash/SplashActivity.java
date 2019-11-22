@@ -20,15 +20,21 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         UIManager.setFullScreen(getWindow());
         setContentView(R.layout.splash_act);
-        if (!App.getHasSignedIn()) {
-            Intent intent = new Intent(this, AuthActivity.class);
-            startActivity(intent);
-        } else {
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
-            startActivity(intent);
-        }
-
-        this.finish();
+        new Thread(() -> {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (!App.getHasSignedIn()) {
+                Intent intent = new Intent(SplashActivity.this, AuthActivity.class);
+                startActivity(intent);
+            } else {
+                Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+                startActivity(intent);
+                startActivity(intent);
+            }
+            this.finish();
+        }).start();
     }
 }

@@ -73,19 +73,39 @@
     },
     {
       "id": "4:2456678755026845372",
-      "lastPropertyId": "1:6940913999054698490",
+      "lastPropertyId": "6:3529622206033799653",
       "name": "ChatListE",
       "properties": [
         {
           "id": "1:6940913999054698490",
           "name": "id"
+        },
+        {
+          "id": "2:7434825355121968158",
+          "name": "username"
+        },
+        {
+          "id": "3:2525141323446702726",
+          "name": "friendName"
+        },
+        {
+          "id": "4:8923883997569069640",
+          "name": "unReadMessageNum"
+        },
+        {
+          "id": "5:1933486270689279716",
+          "name": "latestMsg"
+        },
+        {
+          "id": "6:3529622206033799653",
+          "name": "latestChatTime"
         }
       ],
       "relations": []
     },
     {
       "id": "5:7896737661136057088",
-      "lastPropertyId": "5:4491111660917210260",
+      "lastPropertyId": "7:251907474228869047",
       "name": "MessageE",
       "properties": [
         {
@@ -103,6 +123,14 @@
         {
           "id": "5:4491111660917210260",
           "name": "content"
+        },
+        {
+          "id": "6:3136058093213604258",
+          "name": "isUserSend"
+        },
+        {
+          "id": "7:251907474228869047",
+          "name": "timestamp"
         }
       ],
       "relations": []

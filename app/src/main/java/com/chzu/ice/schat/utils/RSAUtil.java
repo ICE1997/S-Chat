@@ -2,30 +2,42 @@ package com.chzu.ice.schat.utils;
 
 import android.util.Base64;
 
+import java.io.ByteArrayOutputStream;
+import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.crypto.Cipher;
 
 public class RSAUtil {
-    private static final String RSA = "RSA";// 非對稱加密金鑰演算法
-    private static final String ECB_PKCS1_PADDING = "RSA/ECB/PKCS1Padding";//加密填充方式
-    private static final int DEFAULT_KEY_SIZE = 2048;//祕鑰預設長度
-    private static final byte[] DEFAULT_SPLIT = "#PART#".getBytes();  // 當要加密的內容超過bufferSize，則採用partSplit進行分塊加密
-    private static final int DEFAULT_BUFFERSIZE = (DEFAULT_KEY_SIZE / 8) - 11;// 當前祕鑰支援加密的最大位元組數
+    public static final String RSA = "RSA";// 非对称加密密钥算法
+    public static final String ECB_PADDING = "RSA/ECB/PKCS1Padding";//加密填充方式
+//    public static final String ECB_PADDING = "RSA/ECB/OAEPWithSHA256AndMGF1Padding";//加密填充方式
 
-    public static KeyPair generateRSAKeyPair(int keyLength) {
+    /**
+     * RSA算法规定：待加密的字节数不能超过密钥的长度值除以8再减去11。
+     * <p>
+     * 而加密后得到密文的字节数，正好是密钥的长度值除以 8。
+     */
+    public static int KEYSIZE = 2048;// 密钥位数
+    private static int RESERVE_BYTES = 11;// 加密block需要预留字节数
+    private static int DECRYPT_BLOCK = KEYSIZE / 8; // 每段解密block数，256 bytes
+    private static int ENCRYPT_BLOCK = DECRYPT_BLOCK - RESERVE_BYTES; // 每段加密block数245bytes
+
+    /**
+     * 随机生成RSA密钥对
+     *
+     * @param keysize 密钥长度，范围：512-2048,一般2048
+     */
+    public static KeyPair generateKeyPair(int keysize) {
         try {
             KeyPairGenerator kpg = KeyPairGenerator.getInstance(RSA);
-            kpg.initialize(keyLength);
+            kpg.initialize(keysize);
             return kpg.genKeyPair();
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -33,247 +45,191 @@ public class RSAUtil {
         }
     }
 
-    public static String getPublicKey(KeyPair keyPair) {
-        return byte2Base64(keyPair.getPublic().getEncoded());
-    }
-
-    public static String getPrivateKey(KeyPair keyPair) {
-        return byte2Base64(keyPair.getPublic().getEncoded());
-    }
-
-    private static byte[] encryptByPublicKey(byte[] data, byte[] publicKey) throws Exception {
-        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKey);
-        KeyFactory kf = KeyFactory.getInstance(RSA);
-        PublicKey keyPublic = kf.generatePublic(keySpec);
-        Cipher cp = Cipher.getInstance(ECB_PKCS1_PADDING);
-        cp.init(Cipher.ENCRYPT_MODE, keyPublic);
+    /**
+     * 用公钥对字符串进行加密
+     *
+     * @param data 原文
+     */
+    public static byte[] encryptWithPublicKey(byte[] data, byte[] key)
+            throws Exception {
+        Cipher cp = Cipher.getInstance(ECB_PADDING);
+        cp.init(Cipher.ENCRYPT_MODE, getPublicKey(key));
         return cp.doFinal(data);
     }
 
-    private static byte[] encryptByPrivateKey(byte[] data, byte[] privateKey) throws Exception {
-        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKey);
-        KeyFactory kf = KeyFactory.getInstance(RSA);
-        PrivateKey keyPrivate = kf.generatePrivate(keySpec);
-        Cipher cipher = Cipher.getInstance(ECB_PKCS1_PADDING);
-        cipher.init(Cipher.ENCRYPT_MODE, keyPrivate);
+    /**
+     * 公钥解密
+     *
+     * @param data 待解密数据
+     * @param key  密钥
+     */
+    public static byte[] decryptWithPublicKey(byte[] data, byte[] key)
+            throws Exception {
+        Cipher cipher = Cipher.getInstance(ECB_PADDING);
+        cipher.init(Cipher.DECRYPT_MODE, getPublicKey(key));
         return cipher.doFinal(data);
     }
 
-    private static byte[] decryptByPublicKey(byte[] data, byte[] publicKey) throws Exception {
-        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKey);
-        KeyFactory kf = KeyFactory.getInstance(RSA);
-        PublicKey keyPublic = kf.generatePublic(keySpec);
-        Cipher cipher = Cipher.getInstance(ECB_PKCS1_PADDING);
-        cipher.init(Cipher.DECRYPT_MODE, keyPublic);
+    /**
+     * 私钥加密
+     *
+     * @param data 待加密数据
+     * @param key  密钥
+     */
+    public static byte[] encryptWithPrivateKey(byte[] data, byte[] key)
+            throws Exception {
+        Cipher cipher = Cipher.getInstance(ECB_PADDING);
+        cipher.init(Cipher.ENCRYPT_MODE, getPrivateKey(key));
         return cipher.doFinal(data);
     }
 
-    private static byte[] decryptByPrivateKey(byte[] encrypted, byte[] privateKey) throws Exception {
-        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKey);
-        KeyFactory kf = KeyFactory.getInstance(RSA);
-        PrivateKey keyPrivate = kf.generatePrivate(keySpec);
-        Cipher cp = Cipher.getInstance(ECB_PKCS1_PADDING);
-        cp.init(Cipher.DECRYPT_MODE, keyPrivate);
-        return cp.doFinal(encrypted);
+
+    /**
+     * 私钥解密
+     *
+     * @param data 待解密数据
+     * @param key  密钥
+     */
+    public static byte[] decryptWithPrivateKey(byte[] data, byte[] key)
+            throws Exception {
+        Cipher cp = Cipher.getInstance(ECB_PADDING);
+        cp.init(Cipher.DECRYPT_MODE, getPrivateKey(key));
+        byte[] arr = cp.doFinal(data);
+        return arr;
     }
 
-    public static byte[] encryptByPublicKeyForSpilt(byte[] data, byte[] publicKey) throws Exception {
-        int dataLen = data.length;
-        if (dataLen <= DEFAULT_BUFFERSIZE) {
-            return encryptByPublicKey(data, publicKey);
-        }
-        List<Byte> allBytes = new ArrayList<>(2048);
-        int bufIndex = 0;
-        int subDataLoop = 0;
-        byte[] buf = new byte[DEFAULT_BUFFERSIZE];
-        for (int i = 0; i < dataLen; i++) {
-            buf[bufIndex] = data[i];
-            if (++bufIndex == DEFAULT_BUFFERSIZE || i == dataLen - 1) {
-                subDataLoop++;
-                if (subDataLoop != 1) {
-                    for (byte b : DEFAULT_SPLIT) {
-                        allBytes.add(b);
-                    }
-                }
-                byte[] encryptBytes = encryptByPublicKey(buf, publicKey);
-                for (byte b : encryptBytes) {
-                    allBytes.add(b);
-                }
-                bufIndex = 0;
-                if (i == dataLen - 1) {
-                    buf = null;
-                } else {
-                    buf = new byte[Math
-                            .min(DEFAULT_BUFFERSIZE, dataLen - i - 1)];
-                }
-            }
-        }
-        byte[] bytes = new byte[allBytes.size()];
-        int i = 0;
-        for (Byte b : allBytes) {
-            bytes[i++] = b;
-        }
-        return bytes;
+    public static Key getPublicKey(byte[] key) throws Exception {
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(key);
+        KeyFactory keyFactory = KeyFactory.getInstance(RSA);
+        return keyFactory.generatePublic(keySpec);
     }
 
-    public static byte[] encryptByPrivateKeyForSpilt(byte[] data, byte[] privateKey) throws Exception {
-        int dataLen = data.length;
-        if (dataLen <= DEFAULT_BUFFERSIZE) {
-            return encryptByPrivateKey(data, privateKey);
-        }
-        List<Byte> allBytes = new ArrayList<>(2048);
-        int bufIndex = 0;
-        int subDataLoop = 0;
-        byte[] buf = new byte[DEFAULT_BUFFERSIZE];
-        for (int i = 0; i < dataLen; i++) {
-            buf[bufIndex] = data[i];
-            if (++bufIndex == DEFAULT_BUFFERSIZE || i == dataLen - 1) {
-                subDataLoop++;
-                if (subDataLoop != 1) {
-                    for (byte b : DEFAULT_SPLIT) {
-                        allBytes.add(b);
-                    }
-                }
-                byte[] encryptBytes = encryptByPrivateKey(buf, privateKey);
-                for (byte b : encryptBytes) {
-                    allBytes.add(b);
-                }
-                bufIndex = 0;
-                if (i == dataLen - 1) {
-                    buf = null;
-                } else {
-                    buf = new byte[Math.min(DEFAULT_BUFFERSIZE, dataLen - i - 1)];
-                }
-            }
-        }
-        byte[] bytes = new byte[allBytes.size()];
-        {
-            int i = 0;
-            for (Byte b : allBytes) {
-                bytes[i++] = b;
-            }
-        }
-        return bytes;
+    public static PrivateKey getPrivateKey(byte[] key) throws Exception {
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(key);
+        KeyFactory keyFactory = KeyFactory.getInstance(RSA);
+        return keyFactory.generatePrivate(keySpec);
     }
 
-    public static byte[] decryptByPublicKeyForSpilt(byte[] encrypted, byte[] publicKey) throws Exception {
-        int splitLen = DEFAULT_SPLIT.length;
-        if (splitLen <= 0) {
-            return decryptByPublicKey(encrypted, publicKey);
+    /**
+     * 分块加密
+     *
+     * @param data
+     * @param key
+     */
+    public static byte[] encryptWithPublicKeyBlock(byte[] data, byte[] key) throws Exception {
+        int blockCount = (data.length / ENCRYPT_BLOCK);
+
+        if ((data.length % ENCRYPT_BLOCK) != 0) {
+            blockCount += 1;
         }
-        int dataLen = encrypted.length;
-        List<Byte> allBytes = new ArrayList<>(1024);
-        int latestStartIndex = 0;
-        for (int i = 0; i < dataLen; i++) {
-            byte bt = encrypted[i];
-            boolean isMatchSplit = false;
-            if (i == dataLen - 1) {
-                byte[] part = new byte[dataLen - latestStartIndex];
-                System.arraycopy(encrypted, latestStartIndex, part, 0, part.length);
-                byte[] decryptPart = decryptByPublicKey(part, publicKey);
-                for (byte b : decryptPart) {
-                    allBytes.add(b);
-                }
-                latestStartIndex = i + splitLen;
-                i = latestStartIndex - 1;
-            } else if (bt == DEFAULT_SPLIT[0]) {
-                if (splitLen > 1) {
-                    if (i + splitLen < dataLen) {
-                        for (int j = 1; j < splitLen; j++) {
-                            if (DEFAULT_SPLIT[j] != encrypted[i + j]) {
-                                break;
-                            }
-                            if (j == splitLen - 1) {
-                                isMatchSplit = true;
-                            }
-                        }
-                    }
-                } else {
-                    isMatchSplit = true;
-                }
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(blockCount * ENCRYPT_BLOCK);
+        Cipher cipher = Cipher.getInstance(ECB_PADDING);
+        cipher.init(Cipher.ENCRYPT_MODE, getPublicKey(key));
+
+        for (int offset = 0; offset < data.length; offset += ENCRYPT_BLOCK) {
+            int inputLen = (data.length - offset);
+            if (inputLen > ENCRYPT_BLOCK) {
+                inputLen = ENCRYPT_BLOCK;
             }
-            if (isMatchSplit) {
-                byte[] part = new byte[i - latestStartIndex];
-                System.arraycopy(encrypted, latestStartIndex, part, 0, part.length);
-                byte[] decryptPart = decryptByPublicKey(part, publicKey);
-                for (byte b : decryptPart) {
-                    allBytes.add(b);
-                }
-                latestStartIndex = i + splitLen;
-                i = latestStartIndex - 1;
-            }
+            byte[] encryptedBlock = cipher.doFinal(data, offset, inputLen);
+            bos.write(encryptedBlock);
         }
-        byte[] bytes = new byte[allBytes.size()];
-        {
-            int i = 0;
-            for (Byte b : allBytes) {
-                bytes[i++] = b;
-            }
-        }
-        return bytes;
+
+        bos.close();
+        return bos.toByteArray();
     }
 
+    /**
+     * 分块加密
+     *
+     * @param data
+     * @param key
+     */
+    public static byte[] encryptWithPrivateKeyBlock(byte[] data, byte[] key) throws Exception {
+        int blockCount = (data.length / ENCRYPT_BLOCK);
 
-    public static byte[] decryptByPrivateKeyForSpilt(byte[] encrypted, byte[] privateKey) throws Exception {
-        int splitLen = DEFAULT_SPLIT.length;
-        if (splitLen <= 0) {
-            return decryptByPrivateKey(encrypted, privateKey);
+        if ((data.length % ENCRYPT_BLOCK) != 0) {
+            blockCount += 1;
         }
-        int dataLen = encrypted.length;
-        List<Byte> allBytes = new ArrayList<>(1024);
-        int latestStartIndex = 0;
-        for (int i = 0; i < dataLen; i++) {
-            byte bt = encrypted[i];
-            boolean isMatchSplit = false;
-            if (i == dataLen - 1) {
-                byte[] part = new byte[dataLen - latestStartIndex];
-                System.arraycopy(encrypted, latestStartIndex, part, 0, part.length);
-                byte[] decryptPart = decryptByPrivateKey(part, privateKey);
-                for (byte b : decryptPart) {
-                    allBytes.add(b);
-                }
-                latestStartIndex = i + splitLen;
-                i = latestStartIndex - 1;
-            } else if (bt == DEFAULT_SPLIT[0]) {
-                if (splitLen > 1) {
-                    if (i + splitLen < dataLen) {
-                        for (int j = 1; j < splitLen; j++) {
-                            if (DEFAULT_SPLIT[j] != encrypted[i + j]) {
-                                break;
-                            }
-                            if (j == splitLen - 1) {
-                                isMatchSplit = true;
-                            }
-                        }
-                    }
-                } else {
-                    isMatchSplit = true;
-                }
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(blockCount * ENCRYPT_BLOCK);
+        Cipher cipher = Cipher.getInstance(ECB_PADDING);
+        cipher.init(Cipher.ENCRYPT_MODE, getPrivateKey(key));
+
+        for (int offset = 0; offset < data.length; offset += ENCRYPT_BLOCK) {
+            int inputLen = (data.length - offset);
+            if (inputLen > ENCRYPT_BLOCK) {
+                inputLen = ENCRYPT_BLOCK;
             }
-            if (isMatchSplit) {
-                byte[] part = new byte[i - latestStartIndex];
-                System.arraycopy(encrypted, latestStartIndex, part, 0, part.length);
-                byte[] decryptPart = decryptByPrivateKey(part, privateKey);
-                for (byte b : decryptPart) {
-                    allBytes.add(b);
-                }
-                latestStartIndex = i + splitLen;
-                i = latestStartIndex - 1;
+            byte[] encryptedBlock = cipher.doFinal(data, offset, inputLen);
+            bos.write(encryptedBlock);
+        }
+
+        bos.close();
+        return bos.toByteArray();
+    }
+
+    /**
+     * 分块解密
+     *
+     * @param data
+     * @param key
+     */
+    public static byte[] decryptWithPublicKeyBlock(byte[] data, byte[] key) throws Exception {
+        int blockCount = (data.length / DECRYPT_BLOCK);
+        if ((data.length % DECRYPT_BLOCK) != 0) {
+            blockCount += 1;
+        }
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(blockCount * DECRYPT_BLOCK);
+        Cipher cipher = Cipher.getInstance(ECB_PADDING);
+        cipher.init(Cipher.DECRYPT_MODE, getPublicKey(key));
+        for (int offset = 0; offset < data.length; offset += DECRYPT_BLOCK) {
+            int inputLen = (data.length - offset);
+            if (inputLen > DECRYPT_BLOCK) {
+                inputLen = DECRYPT_BLOCK;
             }
+            byte[] decryptedBlock = cipher.doFinal(data, offset, inputLen);
+            bos.write(decryptedBlock);
         }
-        byte[] bytes = new byte[allBytes.size()];
-        int i = 0;
-        for (Byte b : allBytes) {
-            bytes[i++] = b;
+
+        bos.close();
+        return bos.toByteArray();
+    }
+
+    /**
+     * 分块解密
+     *
+     * @param data
+     * @param key
+     */
+    public static byte[] decryptWithPrivateKeyBlock(byte[] data, byte[] key) throws Exception {
+        int blockCount = (data.length / DECRYPT_BLOCK);
+        if ((data.length % DECRYPT_BLOCK) != 0) {
+            blockCount += 1;
         }
-        return bytes;
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(blockCount * DECRYPT_BLOCK);
+        Cipher cipher = Cipher.getInstance(ECB_PADDING);
+        cipher.init(Cipher.DECRYPT_MODE, getPrivateKey(key));
+        for (int offset = 0; offset < data.length; offset += DECRYPT_BLOCK) {
+            int inputLen = (data.length - offset);
+
+            if (inputLen > DECRYPT_BLOCK) {
+                inputLen = DECRYPT_BLOCK;
+            }
+
+            byte[] decryptedBlock = cipher.doFinal(data, offset, inputLen);
+            bos.write(decryptedBlock);
+        }
+
+        bos.close();
+        return bos.toByteArray();
     }
 
     public static String byte2Base64(byte[] bytes) {
-        return android.util.Base64.encodeToString(bytes, Base64.URL_SAFE);
+        return Base64.encodeToString(bytes, Base64.NO_PADDING);
     }
 
     public static byte[] base642Byte(String base64Key) {
-        return android.util.Base64.decode(base64Key, Base64.URL_SAFE);
+        return Base64.decode(base64Key, Base64.NO_PADDING);
     }
 }

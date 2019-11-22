@@ -13,6 +13,8 @@ public class MessageE {
     private String content;
     private long timestamp;
 
+
+
     public boolean isUserSend() {
         return isUserSend;
     }

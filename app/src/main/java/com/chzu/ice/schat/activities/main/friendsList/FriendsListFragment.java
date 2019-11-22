@@ -49,7 +49,6 @@ public class FriendsListFragment extends Fragment implements FriendsListContract
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         title = getActivity().findViewById(R.id.mainToolbarTittle);
-        presenter.loadAllFriendsByUsername(App.getSignedInUsername());
     }
 
     private void friendListInit() {
@@ -61,8 +60,10 @@ public class FriendsListFragment extends Fragment implements FriendsListContract
         friendListRV.setAdapter(adapter);
         adapter.setOnClickListener((name) -> {
             Intent intent = new Intent(getContext(), ChatActivity.class);
+            intent.putExtra(ChatActivity.EXTRA_FRIEND_NAME, name);
             startActivity(intent);
         });
+        presenter.loadAllFriendsByUsername(App.getSignedInUsername());
     }
 
     @Override

@@ -12,11 +12,15 @@ public class ChatItem {
         this.isSender = isSender;
     }
 
+    public ChatItem() {
+
+    }
+
     public boolean isSender() {
         return isSender;
     }
 
-    public void setSender(boolean sender) {
+    public void setIsSender(boolean sender) {
         isSender = sender;
     }
 

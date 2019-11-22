@@ -6,7 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import com.chzu.ice.schat.data.LocalDataBase;
+import com.chzu.ice.schat.data.LocalRepository;
 import com.chzu.ice.schat.data.SPDao;
 import com.chzu.ice.schat.pojos.database.AccountE;
 import com.chzu.ice.schat.services.MQTTService;
@@ -44,7 +44,7 @@ public class App extends Application {
         signedInUserAccessToken = account.getAccessToken();
         signedInUserRefreshToken = account.getRefreshToken();
         SPDao.setSignedInUser(account);
-        LocalDataBase.localAddAccount(account);
+        LocalRepository.localAddAccount(account);
     }
 
     public static String getSignedInUsername() {
@@ -58,7 +58,7 @@ public class App extends Application {
         if (signedInUserTopic == null) {
             signedInUserTopic = SPDao.getSignedInUserTopic(mContext);
             if (signedInUserTopic == null) {
-                AccountE account = LocalDataBase.localGetAccountByUsername(getSignedInUsername());
+                AccountE account = LocalRepository.localGetAccountByUsername(getSignedInUsername());
                 signedInUserTopic = account.getTopic();
             }
         }
@@ -70,7 +70,7 @@ public class App extends Application {
             signedInUserPrivateKey = SPDao.getSignedInUserPrivateKey(mContext);
             if (signedInUserPrivateKey == null) {
                 if (getSignedInUsername() != null) {
-                    AccountE account = LocalDataBase.localGetAccountByUsername(getSignedInUsername());
+                    AccountE account = LocalRepository.localGetAccountByUsername(getSignedInUsername());
                     signedInUserPrivateKey = account.getPrivateKey();
                 }
             }
@@ -83,7 +83,7 @@ public class App extends Application {
             signedInUserPublicKey = SPDao.getSignedInUserPublicKey(mContext);
             if (signedInUserPublicKey == null) {
                 if (getSignedInUsername() != null) {
-                    AccountE account = LocalDataBase.localGetAccountByUsername(getSignedInUsername());
+                    AccountE account = LocalRepository.localGetAccountByUsername(getSignedInUsername());
                     signedInUserPublicKey = account.getPublicKey();
                 }
             }
@@ -96,7 +96,7 @@ public class App extends Application {
             signedInUserAccessToken = SPDao.getSignedInUserAccessToken(mContext);
             if (signedInUserAccessToken == null) {
                 if (getSignedInUsername() != null) {
-                    AccountE account = LocalDataBase.localGetAccountByUsername(getSignedInUsername());
+                    AccountE account = LocalRepository.localGetAccountByUsername(getSignedInUsername());
                     signedInUserAccessToken = account.getAccessToken();
                 }
             }
@@ -109,7 +109,7 @@ public class App extends Application {
             signedInUserRefreshToken = SPDao.getSignedInUserRefreshToken(mContext);
             if (signedInUserRefreshToken == null) {
                 if (getSignedInUsername() != null) {
-                    AccountE account = LocalDataBase.localGetAccountByUsername(getSignedInUsername());
+                    AccountE account = LocalRepository.localGetAccountByUsername(getSignedInUsername());
                     signedInUserRefreshToken = account.getRefreshToken();
                 }
             }
