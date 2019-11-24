@@ -21,11 +21,6 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
     private ArrayList<ChatItem> chatItems = new ArrayList<>();
 
     public ChatRCVAdapter() {
-        boolean t = true;
-        for (int i = 0; i < 10; i++) {
-            chatItems.add(new ChatItem("HelloWorld!你好！你好！你好！你好！你好！你好！你好！你好！你好！你好！你好！", "12:00", t));
-            t = !t;
-        }
         setHasStableIds(true);
     }
 
@@ -55,10 +50,10 @@ public class ChatRCVAdapter extends RecyclerView.Adapter<ChatRCVAdapter.ViewHold
             holder.msgTV.setTextColor(Color.BLACK);
             holder.timeTV.setTextColor(Color.BLACK);
             holder.allDoneImg.setImageDrawable(ContextCompat.getDrawable(holder.allDoneImg.getContext(), R.drawable.ic_done_all_black_12dp));
-            ((LinearLayout) holder.itemView).getChildAt(0).setBackground(ContextCompat.getDrawable(((LinearLayout) holder.itemView).getContext(), R.drawable.text_view_chat_item_background_black));
+            ((LinearLayout) holder.itemView).getChildAt(0).setBackground(ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.text_view_chat_item_background_black));
         } else {
             ((LinearLayout) holder.itemView).setGravity(Gravity.START);
-            ((LinearLayout) holder.itemView).getChildAt(0).setBackground(ContextCompat.getDrawable(((LinearLayout) holder.itemView).getContext(), R.drawable.text_view_chat_item_background_blue));
+            ((LinearLayout) holder.itemView).getChildAt(0).setBackground(ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.text_view_chat_item_background_blue));
             holder.msgTV.setTextColor(ContextCompat.getColor(holder.msgTV.getContext(), R.color.colorAccent));
             holder.timeTV.setTextColor(ContextCompat.getColor(holder.timeTV.getContext(), R.color.colorAccent));
             holder.allDoneImg.setImageDrawable(ContextCompat.getDrawable(holder.allDoneImg.getContext(), R.drawable.ic_done_all_blue_12dp));

@@ -8,17 +8,15 @@ import com.chzu.ice.schat.pojos.database.AccountE;
 import com.chzu.ice.schat.utils.SPHelper;
 
 public class SPDao {
-    public static final String SP_CONFIG_ADDRESS_LOGIN_INFO = "login_info";
-    public static final String SP_CONFIG_KEY_SIGNED_IN_USERNAME = "signed_in_username";
-    public static final String SP_CONFIG_KEY_SIGNED_IN_USER_TOPIC = "signed_in_user_topic";
-    public static final String SP_CONFIG_KEY_SIGNED_IN_USER_PUBLIC_KEY = "signed_in_user_private_key";
-    public static final String SP_CONFIG_KEY_SIGNED_IN_USER_PRIVATE_KEY = "signed_in_user_public_key";
-    public static final String SP_CONFIG_KEY_SIGNED_IN_USER_ACCESS_TOKEN = "signed_in_user_access_token";
-    public static final String SP_CONFIG_KEY_SIGNED_IN_USER_REFRESH_TOKEN = "signed_in_user_refresh_token";
-
-    public static final String SP_CONFIG_KEY_HAS_SIGNED_IN = "has_signed_in";
     public static final String SP_CONFIG_KEY_IS_FIRST_OPEN = "is_first_open";
-
+    private static final String SP_CONFIG_ADDRESS_LOGIN_INFO = "login_info";
+    private static final String SP_CONFIG_KEY_SIGNED_IN_USERNAME = "signed_in_username";
+    private static final String SP_CONFIG_KEY_SIGNED_IN_USER_TOPIC = "signed_in_user_topic";
+    private static final String SP_CONFIG_KEY_SIGNED_IN_USER_PUBLIC_KEY = "signed_in_user_private_key";
+    private static final String SP_CONFIG_KEY_SIGNED_IN_USER_PRIVATE_KEY = "signed_in_user_public_key";
+    private static final String SP_CONFIG_KEY_SIGNED_IN_USER_ACCESS_TOKEN = "signed_in_user_access_token";
+    private static final String SP_CONFIG_KEY_SIGNED_IN_USER_REFRESH_TOKEN = "signed_in_user_refresh_token";
+    private static final String SP_CONFIG_KEY_HAS_SIGNED_IN = "has_signed_in";
     private static final String TAG = SPDao.class.getSimpleName();
 
     public static boolean getHasSignedIn() {
@@ -48,6 +46,47 @@ public class SPDao {
         } else {
             Log.e(TAG, "setSignedInUser: 获取Context失败");
         }
+    }
+
+    public static void setSignedInUsername(String signedInUsername) {
+        SPHelper spHelper = new SPHelper(App.getContext(), SP_CONFIG_ADDRESS_LOGIN_INFO);
+        spHelper.putString(SP_CONFIG_KEY_SIGNED_IN_USERNAME, signedInUsername);
+        spHelper.apply();
+    }
+
+    public static void setSignedInUserTopic(String signedInUserTopic) {
+        SPHelper spHelper = new SPHelper(App.getContext(), SP_CONFIG_ADDRESS_LOGIN_INFO);
+        spHelper.putString(SP_CONFIG_KEY_SIGNED_IN_USER_TOPIC, signedInUserTopic);
+
+        spHelper.apply();
+    }
+
+    public static void setSignedInUserPublicKey(String signedInUserPublicKey) {
+        SPHelper spHelper = new SPHelper(App.getContext(), SP_CONFIG_ADDRESS_LOGIN_INFO);
+        spHelper.putString(SP_CONFIG_KEY_SIGNED_IN_USER_PUBLIC_KEY, signedInUserPublicKey);
+
+        spHelper.apply();
+    }
+
+    public static void setSignedInUserPrivateKey(String signedInUserPrivateKey) {
+        SPHelper spHelper = new SPHelper(App.getContext(), SP_CONFIG_ADDRESS_LOGIN_INFO);
+        spHelper.putString(SP_CONFIG_KEY_SIGNED_IN_USER_PRIVATE_KEY, signedInUserPrivateKey);
+
+        spHelper.apply();
+    }
+
+    public static void setSignedInUserAccessToken(String signedInUserAccessToken) {
+        SPHelper spHelper = new SPHelper(App.getContext(), SP_CONFIG_ADDRESS_LOGIN_INFO);
+        spHelper.putString(SP_CONFIG_KEY_SIGNED_IN_USER_ACCESS_TOKEN, signedInUserAccessToken);
+
+        spHelper.apply();
+    }
+
+    public static void setSignedInUserRefreshsToken(String signedInUserRefeshToken) {
+        SPHelper spHelper = new SPHelper(App.getContext(), SP_CONFIG_ADDRESS_LOGIN_INFO);
+        spHelper.putString(SP_CONFIG_KEY_SIGNED_IN_USER_REFRESH_TOKEN, signedInUserRefeshToken);
+
+        spHelper.apply();
     }
 
     public static String getSignedInUsername(Context context) {

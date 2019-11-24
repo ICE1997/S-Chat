@@ -26,49 +26,53 @@ public class ImplLoginPresenter implements LoginContract.Presenter {
 
     @Override
     public void login(final String username, final String password) {
-        view.afterLogin();
-        new Thread(() -> {
-            KeyPair keyPair = RSAUtil.generateKeyPair(RSAUtil.KEYSIZE);
-            PublicKey publicKey;
-            PrivateKey privateKey;
-            if (keyPair != null) {
-                publicKey = keyPair.getPublic();
-                privateKey = keyPair.getPrivate();
-                BaseResponse<LoginData> respJ = RemoteRepository.remoteLogin(username, password, RSAUtil.byte2Base64(publicKey.getEncoded()));
-                if (respJ != null) {
-                    view.endLogin();
-                    switch (respJ.code) {
-                        case "10201":
-                            view.showLoginSucceed();
-                            App.setSignedIn(true);
-                            LoginData data = respJ.data;
-                            AccountE accountE = new AccountE();
-                            accountE.setUsername(username);
-                            accountE.setRefreshToken(data.refreshToken);
-                            accountE.setAccessToken(data.accessToken);
-                            accountE.setTopic(data.topic);
-                            accountE.setPublicKey(RSAUtil.byte2Base64(publicKey.getEncoded()));
-                            accountE.setPrivateKey(RSAUtil.byte2Base64(privateKey.getEncoded()));
-                            LocalRepository.localAddAccount(accountE);
-                            SPDao.setSignedInUser(accountE);
-                            break;
-                        case "10202":
-                            Log.i(TAG, "run: 用户名不存在！");
-                            view.showLoginFailedForWrongUsernameOrPassword();
-                            break;
-                        case "10203":
-                            view.showLoginFailedForWrongUsernameOrPassword();
-                            break;
-                        case "401": {
-                            view.showLoginFailedForWrongUsernameOrPassword();
+        if ("".equals(username) || "".equals(password)) {
+            view.showUsernameOrPasswordCantBeEmpty();
+        } else {
+            view.afterLogin();
+            new Thread(() -> {
+                KeyPair keyPair = RSAUtil.generateKeyPair(RSAUtil.KEYSIZE);
+                PublicKey publicKey;
+                PrivateKey privateKey;
+                if (keyPair != null) {
+                    publicKey = keyPair.getPublic();
+                    privateKey = keyPair.getPrivate();
+                    BaseResponse<LoginData> respJ = RemoteRepository.remoteLogin(username, password, RSAUtil.byte2Base64(publicKey.getEncoded()));
+                    if (respJ != null) {
+                        view.endLogin();
+                        switch (respJ.code) {
+                            case "10201":
+                                view.showLoginSucceed();
+                                App.setSignedIn(true);
+                                LoginData data = respJ.data;
+                                AccountE accountE = new AccountE();
+                                accountE.setUsername(username);
+                                accountE.setRefreshToken(data.refreshToken);
+                                accountE.setAccessToken(data.accessToken);
+                                accountE.setTopic(data.topic);
+                                accountE.setPublicKey(RSAUtil.byte2Base64(publicKey.getEncoded()));
+                                accountE.setPrivateKey(RSAUtil.byte2Base64(privateKey.getEncoded()));
+                                LocalRepository.localAddAccount(accountE);
+                                SPDao.setSignedInUser(accountE);
+                                break;
+                            case "10202":
+                                Log.i(TAG, "run: 用户名不存在！");
+                                view.showLoginFailedForWrongUsernameOrPassword();
+                                break;
+                            case "10203":
+                                view.showLoginFailedForWrongUsernameOrPassword();
+                                break;
+                            case "401": {
+                                view.showLoginFailedForWrongUsernameOrPassword();
+                            }
                         }
+                    } else {
+                        Log.e(TAG, "remoteLogin: 返回结果无法被解析");
                     }
                 } else {
-                    Log.e(TAG, "remoteLogin: 返回结果无法被解析");
+                    Log.e(TAG, "remoteLogin: 密钥对生成失败！");
                 }
-            } else {
-                Log.e(TAG, "remoteLogin: 密钥对生成失败！");
-            }
-        }).start();
+            }).start();
+        }
     }
 }

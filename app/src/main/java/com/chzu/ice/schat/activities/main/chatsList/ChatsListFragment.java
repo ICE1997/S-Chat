@@ -17,10 +17,14 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.chzu.ice.schat.App;
 import com.chzu.ice.schat.R;
 import com.chzu.ice.schat.activities.chat.ChatActivity;
+import com.chzu.ice.schat.adpters.ChatListItem;
 import com.chzu.ice.schat.adpters.ChatListRCVAdapter;
 import com.chzu.ice.schat.views.custom.CustomLinearLayoutManager;
+
+import java.util.List;
 
 public class ChatsListFragment extends Fragment implements ChatsListContract.View {
     private static final String TAG = ChatsListFragment.class.getSimpleName();
@@ -33,6 +37,7 @@ public class ChatsListFragment extends Fragment implements ChatsListContract.Vie
     private View bottomNavEdit;
     private TextView editStateChangeBtn;
     private ChatListRCVAdapter chatRCVAdapter;
+    private ChatsListContract.Presenter presenter;
     private boolean isEditMode = false;
 
 
@@ -56,6 +61,9 @@ public class ChatsListFragment extends Fragment implements ChatsListContract.Vie
 
     @Override
     public void onResume() {
+        if (presenter != null) {
+            presenter.loadAllChatList();
+        }
         super.onResume();
     }
 
@@ -68,13 +76,16 @@ public class ChatsListFragment extends Fragment implements ChatsListContract.Vie
             preInflateView();
             chatListInit();
             registerListeners();
+            new ImplChatsListPresenter(this);
+            presenter.loadAllChatList();
+            presenter.registerReceiverMessageListener(App.getContext());
         });
         return root;
     }
 
     @Override
     public void setPresenter(ChatsListContract.Presenter presenter) {
-
+        this.presenter = presenter;
     }
 
     private void registerListeners() {
@@ -103,9 +114,9 @@ public class ChatsListFragment extends Fragment implements ChatsListContract.Vie
             }
         });
 
-        chatRCVAdapter.setOnClickListener((v, p) -> {
+        chatRCVAdapter.setOnClickListener((v, p, friendName) -> {
             if (!isEditMode) {
-                goToChat();
+                goToChat(friendName);
                 if (chatRCVAdapter.isRead(p)) {
                     Log.d(TAG, "onClick: 消息已读" + p);
                 } else {
@@ -115,14 +126,15 @@ public class ChatsListFragment extends Fragment implements ChatsListContract.Vie
         });
     }
 
-    private void goToChat() {
+    private void goToChat(String friendName) {
         Intent intent = new Intent(getContext(), ChatActivity.class);
+        intent.putExtra(ChatActivity.EXTRA_FRIEND_NAME, friendName);
         startActivity(intent);
     }
 
     private void preInflateView() {
         new Handler().post(() -> {
-            bottomNavEdit = View.inflate(getContext(), R.layout.base_bottom_nav_edit, null);
+            bottomNavEdit = View.inflate(App.getContext(), R.layout.base_bottom_nav_edit, null);
             selectTV = bottomNavEdit.findViewById(R.id.tvSelectAll);
             readTV = bottomNavEdit.findViewById(R.id.tvRead);
             deleteTV = bottomNavEdit.findViewById(R.id.tvDelete);
@@ -141,6 +153,21 @@ public class ChatsListFragment extends Fragment implements ChatsListContract.Vie
         chatRCVAdapter.setListController(new ListController());
 
         chatListRv.setAdapter(chatRCVAdapter);
+    }
+
+    @Override
+    public void loadAllChatListComplete(List<ChatListItem> chatListItemList) {
+        Log.d(TAG, "loadAllChatListComplete: 测试");
+        for (ChatListItem chatListItem : chatListItemList) {
+            Log.d(TAG, "loadAllChatListComplete: " + chatListItem.getLatestMessage());
+        }
+        chatRCVAdapter.setDataSet(chatListItemList);
+    }
+
+
+    @Override
+    public void updateOrInsertChat(ChatListItem item) {
+        chatRCVAdapter.updateOrInsertItem(item);
     }
 
 
@@ -233,6 +260,16 @@ public class ChatsListFragment extends Fragment implements ChatsListContract.Vie
             } else {
                 deleteTV.setEnabled(true);
             }
+        }
+
+        @Override
+        public void read(String friendName) {
+            presenter.read(friendName);
+        }
+
+        @Override
+        public void delete(String friendName) {
+            presenter.delete(friendName);
         }
     }
 }

@@ -37,9 +37,8 @@ public final class RemoteRepository {
             Response response = okHttpClient.newCall(request).execute();
             String respS = Objects.requireNonNull(response.body()).string();
             Log.i(TAG, "remoteLogin: " + respS);
-            BaseResponse<LoginData> respJ = gson.fromJson(respS, new TypeToken<BaseResponse<LoginData>>() {
+            return gson.fromJson(respS, new TypeToken<BaseResponse<LoginData>>() {
             }.getType());
-            return respJ;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -58,8 +57,7 @@ public final class RemoteRepository {
             Response response = okHttpClient.newCall(request).execute();
             String respS = Objects.requireNonNull(response.body()).string();
             Log.i(TAG, "remoteRegister: " + respS);
-            BaseResponse respJ = gson.fromJson(respS, BaseResponse.class);
-            return respJ;
+            return gson.fromJson(respS, BaseResponse.class);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -75,8 +73,7 @@ public final class RemoteRepository {
             Response response = okHttpClient.newCall(request).execute();
             String respS = Objects.requireNonNull(response.body()).string();
             Log.i(TAG, "remoteGetAccessTokenByRefreshToken: " + respS);
-            BaseResponse baseResponse = gson.fromJson(respS, BaseResponse.class);
-            return baseResponse;
+            return gson.fromJson(respS, BaseResponse.class);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -93,9 +90,8 @@ public final class RemoteRepository {
             Response response = okHttpClient.newCall(request).execute();
             String respS = Objects.requireNonNull(response.body()).string();
             Log.d(TAG, "run: " + respS);
-            BaseResponse<List<LoadAllFriendRelationsData>> relations = gson.fromJson(respS, new TypeToken<BaseResponse<List<LoadAllFriendRelationsData>>>() {
+            return gson.fromJson(respS, new TypeToken<BaseResponse<List<LoadAllFriendRelationsData>>>() {
             }.getType());
-            return relations;
         } catch (IOException e) {
             e.printStackTrace();
         }

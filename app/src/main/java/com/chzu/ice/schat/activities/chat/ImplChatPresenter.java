@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.util.Log;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -11,6 +12,7 @@ import com.chzu.ice.schat.App;
 import com.chzu.ice.schat.adpters.ChatItem;
 import com.chzu.ice.schat.configs.MQTTConfig;
 import com.chzu.ice.schat.data.LocalRepository;
+import com.chzu.ice.schat.pojos.database.ChatListE;
 import com.chzu.ice.schat.pojos.database.FriendE;
 import com.chzu.ice.schat.pojos.database.MessageE;
 import com.chzu.ice.schat.pojos.mqtt.Message;
@@ -35,44 +37,66 @@ public class ImplChatPresenter implements ChatContract.Presenter {
 
     @Override
     public void sendMessageTo(String content, String friendName) {
-        view.afterSendMessage();
-        new Thread(() -> {
-            FriendE friendE = LocalRepository.localGetFriendByUsernameAndFriendName(App.getSignedInUsername(), friendName);
-            try {
-                Message message = new Message();
-                message.setMsg(content);
-                message.setSendTime(new Date().getTime());
-                message.setSender(App.getSignedInUsername());
-                message.setReceiver(friendName);
-                String res = MessageProcessor.encryptMessage(message, friendE);
-                MQTTController.sendSendMessageBroadCast(res, friendE.getFriendTopic());
+        if (!"".equals(content)) {
+            view.afterSendMessage();
+            new Thread(() -> {
+                Log.d(TAG, "sendMessageTo: " + friendName);
+                FriendE friendE = LocalRepository.localGetFriendByUsernameAndFriendName(App.getSignedInUsername(), friendName);
+                try {
+                    Message message = new Message();
+                    message.setMsg(content);
+                    message.setSendTime(new Date().getTime());
+                    message.setSender(App.getSignedInUsername());
+                    message.setReceiver(friendName);
+                    String res = MessageProcessor.encryptMessage(message, friendE);
+                    MQTTController.sendSendMessageBroadCast(res, friendE.getFriendTopic());
 
-                MessageE messageE = new MessageE();
-                messageE.setContent(message.getMsg());
-                messageE.setSender(message.getSender());
-                messageE.setReceiver(message.getReceiver());
-                messageE.setUserSend(true);
-                messageE.setTimestamp(message.getSendTime());
+                    MessageE messageE = new MessageE();
+                    messageE.setContent(message.getMsg());
+                    messageE.setSender(message.getSender());
+                    messageE.setReceiver(message.getReceiver());
+                    messageE.setUserSend(true);
+                    messageE.setTimestamp(message.getSendTime());
 
-                LocalRepository.localAddMessage(messageE);
+                    LocalRepository.localAddMessage(messageE);
+
+                    final Calendar calendar = Calendar.getInstance();
+                    calendar.setTimeInMillis(System.currentTimeMillis());
+                    int h = calendar.get(Calendar.HOUR_OF_DAY);
+                    int m = calendar.get(Calendar.MINUTE);
+                    ChatItem chatItem = new ChatItem();
+                    chatItem.setTime(h + ":" + (m > 9 ? m : 0 + String.valueOf(m)));
+                    chatItem.setIsSender(true);
+                    chatItem.setContent(content);
 
 
-                final Calendar calendar = Calendar.getInstance();
-                calendar.setTimeInMillis(System.currentTimeMillis());
-                int h = calendar.get(Calendar.HOUR_OF_DAY);
-                int m = calendar.get(Calendar.MINUTE);
-                ChatItem chatItem = new ChatItem();
-                chatItem.setTime(h + ":" + (m > 9 ? m : 0 + String.valueOf(m)));
-                chatItem.setIsSender(true);
-                chatItem.setContent(content);
+                    ChatListE chatListEOld = LocalRepository.localGetChatListByUsernameAndFriendName(messageE.getReceiver(), friendName);
 
-                view.endSendMessage(chatItem);
+                    if (chatListEOld != null) {
+                        chatListEOld.setUnReadMessageNum(0);
+                        chatListEOld.setLatestMsg(message.getMsg());
+                        chatListEOld.setUsername(App.getSignedInUsername());
+                        chatListEOld.setFriendName(friendName);
+                        chatListEOld.setLatestChatTime(messageE.getTimestamp());
+                        LocalRepository.localAddOrUpdateChatList(chatListEOld);
+                    } else {
+                        ChatListE chatListE = new ChatListE();
+                        chatListE.setUnReadMessageNum(0);
+                        chatListE.setLatestMsg(message.getMsg());
+                        chatListE.setUsername(App.getSignedInUsername());
+                        chatListE.setFriendName(friendName);
+                        chatListE.setLatestChatTime(messageE.getTimestamp());
+                        LocalRepository.localAddOrUpdateChatList(chatListE);
+                    }
 
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                    view.endSendMessage(chatItem);
 
-        }).start();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }).start();
+        }
     }
 
     @Override

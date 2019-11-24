@@ -1,14 +1,19 @@
 package com.chzu.ice.schat.utils;
 
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
 
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.chzu.ice.schat.App;
+import com.chzu.ice.schat.R;
+import com.chzu.ice.schat.activities.chat.ChatActivity;
 import com.chzu.ice.schat.configs.MQTTConfig;
 import com.chzu.ice.schat.data.LocalRepository;
 import com.chzu.ice.schat.pojos.database.ChatListE;
@@ -54,9 +59,16 @@ public class MQTTController {
         LocalBroadcastManager.getInstance(App.getContext()).sendBroadcast(intent);
     }
 
-    private static void sendSubscribeBroadCast(ArrayList<String> topics) {
+    public static void sendSubscribeBroadCast(ArrayList<String> topics) {
         Log.d(TAG, "sendSubscribeBroadCast: " + Arrays.toString(topics.toArray()));
         Intent intent = new Intent(MQTTConfig.SIGNAL_SUBSCRIBE);
+        intent.putStringArrayListExtra(MQTTConfig.EXTRA_SUBSCRIBE_TOPIC, topics);
+        LocalBroadcastManager.getInstance(App.getContext()).sendBroadcast(intent);
+    }
+
+    public static void sendUnSubscribeBroadCast(ArrayList<String> topics) {
+        Log.d(TAG, "sendSubscribeBroadCast: " + Arrays.toString(topics.toArray()));
+        Intent intent = new Intent(MQTTConfig.SIGNAL_UNSUBSCRIBE);
         intent.putStringArrayListExtra(MQTTConfig.EXTRA_SUBSCRIBE_TOPIC, topics);
         LocalBroadcastManager.getInstance(App.getContext()).sendBroadcast(intent);
     }
@@ -102,8 +114,18 @@ public class MQTTController {
         }
     }
 
-    public void unsubscribe() throws MqttException {
-        mClient.unsubscribe("");
+    private void unsubscribe(ArrayList<String> topics) throws MqttException {
+        if (mClient.isConnected()) {
+            Log.d(TAG, "unSubscribe: " + topics);
+            String[] ts = new String[topics.size()];
+            for (int i = 0; i < topics.size(); i++) {
+                ts[i] = topics.get(i);
+            }
+            mClient.unsubscribe(ts);
+            Log.d(TAG, "unsubscribe: 取消订阅成功");
+        } else {
+            Log.d(TAG, "publish: 客户端未连接");
+        }
     }
 
     /**
@@ -160,6 +182,7 @@ public class MQTTController {
         }, intentFilter);
     }
 
+
     /**
      * 注册订阅主题的广播接收器
      * 应用内通信，一般在获取到所有订阅主题的时候发送此类广播
@@ -175,6 +198,28 @@ public class MQTTController {
                 System.out.println(Arrays.toString(new ArrayList[]{topics}));
                 try {
                     subscribe(topics);
+                } catch (MqttException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, intentFilter);
+    }
+
+    /**
+     * 取消注册订阅主题的广播接收器
+     * 应用内通信，一般在获取到所有订阅主题的时候发送此类广播
+     */
+    private void registerUnSubscribeTopicSignalReceiver() {
+        LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(App.getContext());
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(MQTTConfig.SIGNAL_UNSUBSCRIBE);
+        localBroadcastManager.registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                ArrayList<String> topics = intent.getStringArrayListExtra(MQTTConfig.EXTRA_SUBSCRIBE_TOPIC);
+                System.out.println(Arrays.toString(new ArrayList[]{topics}));
+                try {
+                    unsubscribe(topics);
                 } catch (MqttException e) {
                     e.printStackTrace();
                 }
@@ -239,9 +284,27 @@ public class MQTTController {
         registerConnectSignalReceiver();
         registerSubscribeTopicSignalReceiver();
         registerSendMessageSignalReceiver();
+        registerUnSubscribeTopicSignalReceiver();
     }
 
     private void processMessage(Message message) {
+
+        Intent intent = new Intent(App.getContext(), ChatActivity.class);
+        intent.putExtra(ChatActivity.EXTRA_FRIEND_NAME, message.getSender());
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(App.getContext(), 0, intent, 0);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(App.getContext(), "SChat Notification").
+                setContentTitle(message.getSender())
+                .setContentText(message.getMsg())
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_HIGH);
+        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(App.getContext());
+        notificationManagerCompat.notify(1, builder.build());
+
+
         MessageE messageE = new MessageE();
         messageE.setContent(message.getMsg());
         messageE.setSender(message.getSender());
@@ -249,13 +312,25 @@ public class MQTTController {
         messageE.setTimestamp(message.getSendTime());
         LocalRepository.localAddMessage(messageE);
 
-        ChatListE chatListE = new ChatListE();
-        chatListE.setUnReadMessageNum(1);
-        chatListE.setLatestMsg(message.getMsg());
-        chatListE.setUsername(App.getSignedInUsername());
-        chatListE.setFriendName(messageE.getSender());
-        chatListE.setLatestChatTime(messageE.getTimestamp());
-        LocalRepository.localAddOrUpdateChatList(chatListE);
+
+        ChatListE chatListEOld = LocalRepository.localGetChatListByUsernameAndFriendName(messageE.getReceiver(), messageE.getSender());
+
+        if (chatListEOld != null) {
+            chatListEOld.setUnReadMessageNum(chatListEOld.getUnReadMessageNum() + 1);
+            chatListEOld.setLatestMsg(message.getMsg());
+            chatListEOld.setUsername(App.getSignedInUsername());
+            chatListEOld.setFriendName(messageE.getSender());
+            chatListEOld.setLatestChatTime(messageE.getTimestamp());
+            LocalRepository.localAddOrUpdateChatList(chatListEOld);
+        } else {
+            ChatListE chatListE = new ChatListE();
+            chatListE.setUnReadMessageNum(1);
+            chatListE.setLatestMsg(message.getMsg());
+            chatListE.setUsername(App.getSignedInUsername());
+            chatListE.setFriendName(messageE.getSender());
+            chatListE.setLatestChatTime(messageE.getTimestamp());
+            LocalRepository.localAddOrUpdateChatList(chatListE);
+        }
 
         Gson gson = new Gson();
         sendNewMessageByGsonBroadcast(gson.toJson(message));

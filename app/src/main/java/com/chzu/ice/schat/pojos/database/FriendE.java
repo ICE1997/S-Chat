@@ -14,7 +14,6 @@ public class FriendE {
     private String publicKey;
 
 
-
     public String getUsername() {
         return username;
     }

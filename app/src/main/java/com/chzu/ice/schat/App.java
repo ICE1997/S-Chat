@@ -2,8 +2,11 @@ package com.chzu.ice.schat;
 
 import android.app.ActivityManager;
 import android.app.Application;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
 
 import com.chzu.ice.schat.data.LocalRepository;
@@ -36,7 +39,26 @@ public class App extends Application {
         SPDao.setSignedIn(isSignedIn);
     }
 
-    public static void addUser(AccountE account) {
+    public static void logOut() {
+        signedInUsername = null;
+        signedInUserTopic = null;
+        signedInUserPrivateKey = null;
+        signedInUserPublicKey = null;
+        signedInUserAccessToken = null;
+        signedInUserRefreshToken = null;
+
+        SPDao.setSignedInUsername(null);
+        SPDao.setSignedInUserTopic(null);
+        SPDao.setSignedInUserAccessToken(null);
+        SPDao.setSignedInUserRefreshsToken(null);
+        SPDao.setSignedInUserPublicKey(null);
+        SPDao.setSignedInUserPrivateKey(null);
+
+        setSignedIn(false);
+        SPDao.setSignedInUser(new AccountE());
+    }
+
+    public static void addAccount(AccountE account) {
         signedInUsername = account.getUsername();
         signedInUserTopic = account.getTopic();
         signedInUserPrivateKey = account.getPrivateKey();
@@ -143,10 +165,23 @@ public class App extends Application {
         }
     }
 
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "消息通知";
+            String description = "用于消息通知，请开启。";
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel channel = new NotificationChannel("SChat Notification", name, importance);
+            channel.setDescription(description);
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
         mContext = getApplicationContext();
+        createNotificationChannel();
         ObjectBoxHelper.init(this);
         ObjectBoxHelper.startDebug(true, this);
         startMQTTService();

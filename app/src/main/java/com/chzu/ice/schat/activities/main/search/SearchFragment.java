@@ -1,4 +1,7 @@
 package com.chzu.ice.schat.activities.main.search;
 
-public class SearchFragment {
+import androidx.fragment.app.Fragment;
+
+public class SearchFragment extends Fragment {
+
 }

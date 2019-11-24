@@ -34,7 +34,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:maxWidth="256dp"
-            android:text="你好！你好！你好！你好！你好！你好！你好！你好！你好！你好！你好！"
             android:textColor="@color/colorAccent"
             android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="parent"

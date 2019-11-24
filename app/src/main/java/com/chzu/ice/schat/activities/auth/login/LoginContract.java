@@ -12,6 +12,8 @@ public interface LoginContract {
         void afterLogin();
 
         void endLogin();
+
+        void showUsernameOrPasswordCantBeEmpty();
     }
 
     interface Presenter extends BasePresenter {

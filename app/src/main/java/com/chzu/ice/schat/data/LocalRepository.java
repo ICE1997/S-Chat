@@ -152,22 +152,49 @@ public class LocalRepository {
 
     public static void localAddOrUpdateChatList(ChatListE chatListE) {
         Box<ChatListE> chatListEBox = ObjectBoxHelper.get().boxFor(ChatListE.class);
-        ChatListE temp = chatListEBox.query().equal(ChatListE_.username, chatListE.getUsername()).build().findFirst();
+        ChatListE temp = chatListEBox.query().equal(ChatListE_.username, chatListE.getUsername()).and().equal(ChatListE_.friendName, chatListE.getFriendName()).build().findFirst();
         if (temp == null) {
+            Log.d(TAG, "localAddOrUpdateChatList: 无此对话，新建对话");
             chatListEBox.put(chatListE);
         } else {
             temp.setFriendName(chatListE.getFriendName());
             temp.setLatestChatTime(chatListE.getLatestChatTime());
             temp.setLatestMsg(chatListE.getLatestMsg());
-            temp.setUnReadMessageNum(chatListE.getUnReadMessageNum() + temp.getUnReadMessageNum());
+            temp.setUnReadMessageNum(chatListE.getUnReadMessageNum());
             temp.setUsername(chatListE.getUsername());
             temp.setAvatarSrc(chatListE.getAvatarSrc());
             chatListEBox.put(temp);
         }
     }
 
+    public static void deleteChatlistByUsernameAndFriendName(String username, String friendName) {
+        Box<ChatListE> chatListEBox = ObjectBoxHelper.get().boxFor(ChatListE.class);
+        ChatListE chatListE = chatListEBox.query().equal(ChatListE_.username, username).and().equal(ChatListE_.friendName, friendName).build().findFirst();
+        if (chatListE != null) {
+            chatListEBox.remove(chatListE);
+        } else {
+            Log.d(TAG, "deleteChatlistByUsernameAndFriendName: 删除失败，并无此对话");
+        }
+    }
+
+    public static ChatListE localGetChatListByUsernameAndFriendName(String username, String friendName) {
+        Box<ChatListE> chatListEBox = ObjectBoxHelper.get().boxFor(ChatListE.class);
+        return chatListEBox.query().equal(ChatListE_.username, username).and().equal(ChatListE_.friendName, friendName).build().findFirst();
+    }
+
     public static List<ChatListE> localGetAllChatListByUsername(String username) {
         Box<ChatListE> chatListEBox = ObjectBoxHelper.get().boxFor(ChatListE.class);
         return chatListEBox.query().equal(ChatListE_.username, username).build().find();
+    }
+
+    public static void localSetChatReadByUsernameAndFriendName(String username, String friendName) {
+        Box<ChatListE> chatListEBox = ObjectBoxHelper.get().boxFor(ChatListE.class);
+        ChatListE chatListE = chatListEBox.query().equal(ChatListE_.username, username).and().equal(ChatListE_.friendName, friendName).build().findFirst();
+        if (chatListE != null) {
+            chatListE.setUnReadMessageNum(0);
+            localAddOrUpdateChatList(chatListE);
+        } else {
+            Log.d(TAG, "localSetChatReadByUsernameAndFriendName: 无此对话");
+        }
     }
 }

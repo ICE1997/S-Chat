@@ -14,7 +14,6 @@ public class MessageE {
     private long timestamp;
 
 
-
     public boolean isUserSend() {
         return isUserSend;
     }

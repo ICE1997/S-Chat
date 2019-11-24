@@ -22,7 +22,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.chzu.ice.schat.App;
 import com.chzu.ice.schat.R;
 import com.chzu.ice.schat.activities.auth.register.RegisterFragment;
 import com.chzu.ice.schat.activities.main.MainActivity;
@@ -132,6 +131,33 @@ public class LoginFragment extends Fragment implements LoginContract.View {
             signInBtn.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.button_auth_background_black));
             signInBtn.setText("SIGN IN");
         });
+    }
+
+    @Override
+    public void showUsernameOrPasswordCantBeEmpty() {
+        new Handler(Looper.getMainLooper()).post(() -> {
+                    View view = getActivity().findViewById(R.id.authMainContent);
+                    Snackbar snackbar = Snackbar.make(view, "请填写用户名和密码！", Snackbar.LENGTH_SHORT);
+                    snackbar.getView().setBackgroundColor(Color.RED);
+                    ViewGroup.LayoutParams layoutParams = snackbar.getView().getLayoutParams();
+                    ValueAnimator valueAnimator = new ValueAnimator();
+                    valueAnimator.setDuration(300);
+                    valueAnimator.setIntValues(0, 148);
+                    valueAnimator.addUpdateListener(animation -> {
+                        layoutParams.height = (int) valueAnimator.getAnimatedValue();
+                        snackbar.getView().setLayoutParams(layoutParams);
+                        snackbar.getView().requestLayout();
+                    });
+                    valueAnimator.addListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationStart(Animator animation) {
+                            snackbar.show();
+                            super.onAnimationStart(animation);
+                        }
+                    });
+                    valueAnimator.start();
+                }
+        );
     }
 
     @Override

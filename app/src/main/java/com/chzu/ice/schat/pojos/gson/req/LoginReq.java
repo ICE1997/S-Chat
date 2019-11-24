@@ -12,7 +12,6 @@ public class LoginReq {
     }
 
 
-
     public String getUsername() {
         return username;
     }

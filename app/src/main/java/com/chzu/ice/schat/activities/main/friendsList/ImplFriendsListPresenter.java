@@ -55,7 +55,7 @@ public class ImplFriendsListPresenter implements FriendsListContract.Presenter {
                             if (baseResponse != null) {
                                 if ("10501".equals(baseResponse.code)) {
                                     accountE.setAccessToken((String) baseResponse.data);
-                                    App.addUser(accountE);
+                                    App.addAccount(accountE);
                                     loadAllFriendsByUsername(username);
                                 } else {
                                     Log.e(TAG, "loadAllFriendsByUsername: RefreshToken过期，需要重新登录" + App.getSignedInUserRefreshToken());

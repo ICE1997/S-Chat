@@ -17,24 +17,28 @@ public class ImplRegisterPresenter implements RegisterContract.Presenter {
 
     @Override
     public void register(String username, String password) {
-        view.afterRegister();
-        new Thread(() -> {
-            BaseResponse respJ = RemoteRepository.remoteRegister(username, password);
-            if (respJ != null) {
-                view.endRegister();
-                switch (respJ.code) {
-                    case "10101":
-                        view.showRegisterSucceed();
-                        break;
-                    case "10102":
-                        view.showRegisterFailedForUsernameExist();
-                        break;
-                    case "10103":
-                        break;
+        if ("".equals(username) || "".equals(password)) {
+            view.showUsernameOrPasswordCantBeEmpty();
+        } else {
+            view.afterRegister();
+            new Thread(() -> {
+                BaseResponse respJ = RemoteRepository.remoteRegister(username, password);
+                if (respJ != null) {
+                    view.endRegister();
+                    switch (respJ.code) {
+                        case "10101":
+                            view.showRegisterSucceed();
+                            break;
+                        case "10102":
+                            view.showRegisterFailedForUsernameExist();
+                            break;
+                        case "10103":
+                            break;
+                    }
+                } else {
+                    Log.e(TAG, "remoteRegister: response无法被解析");
                 }
-            } else {
-                Log.e(TAG, "remoteRegister: response无法被解析");
-            }
-        }).start();
+            }).start();
+        }
     }
 }

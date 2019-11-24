@@ -12,6 +12,8 @@ public class RegisterContract {
         void showRegisterFailedForUsernameExist();
 
         void showRegisterSucceed();
+
+        void showUsernameOrPasswordCantBeEmpty();
     }
 
     public interface Presenter extends BasePresenter {
