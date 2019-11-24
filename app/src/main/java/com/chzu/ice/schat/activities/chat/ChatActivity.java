@@ -3,6 +3,7 @@ package com.chzu.ice.schat.activities.chat;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -27,9 +28,9 @@ import java.util.List;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class ChatActivity extends AppCompatActivity implements ChatContract.View {
-    public static final String EXTRA_FRIEND_NAME = "friendName";
+    public static final String EXTRA_FRIEND_NAME = "TTTfriendName";
     private static final String TAG = ChatActivity.class.getSimpleName();
-    ChatRCVAdapter chatRCVAdapter;
+    private ChatRCVAdapter chatRCVAdapter;
     private ChatContract.Presenter presenter;
     private CircleImageView friendAvatar;
     private RecyclerView chatsRCV;
@@ -44,6 +45,8 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
         setContentView(R.layout.chat_act);
         Intent intent = getIntent();
         friendName = intent.getStringExtra(EXTRA_FRIEND_NAME);
+
+        Log.d(TAG, "onCreate: jafa" + friendName);
 
         new ImplChatPresenter(this);
         friendAvatar = findViewById(R.id.friendAvatarIM);
@@ -76,6 +79,12 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
     public boolean onSupportNavigateUp() {
         onBackPressed();
         return true;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        friendName = null;
     }
 
     @Override

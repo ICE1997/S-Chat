@@ -23,6 +23,7 @@
         android:layout_marginBottom="8dp"
         android:background="@drawable/edit_text_send_background"
         android:hint="Message"
+        android:maxLines="10"
         android:minHeight="32dp"
         android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"

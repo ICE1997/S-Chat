@@ -9,6 +9,7 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.TaskStackBuilder;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.chzu.ice.schat.App;
@@ -292,7 +293,12 @@ public class MQTTController {
         Intent intent = new Intent(App.getContext(), ChatActivity.class);
         intent.putExtra(ChatActivity.EXTRA_FRIEND_NAME, message.getSender());
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(App.getContext(), 0, intent, 0);
+
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(App.getContext());
+        stackBuilder.addNextIntentWithParentStack(intent);
+
+        Log.d(TAG, "processMessage: " + message.getSender());
+        PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(App.getContext(), "SChat Notification").
                 setContentTitle(message.getSender())
@@ -434,7 +440,7 @@ public class MQTTController {
         public void messageArrived(String topic, MqttMessage message) {
             Log.d(TAG, "messageArrived: 新消息");
             Log.d(TAG, "messageArrived: topic: to " + topic);
-            Log.d(TAG, "messageArrived: msg:" + message.toString());
+//            Log.d(TAG, "messageArrived: msg:" + message.toString());
             new Thread(() -> {
                 Message msg = MessageProcessor.decryptMessage(message.toString());
                 if (msg != null) {
